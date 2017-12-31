@@ -80,7 +80,8 @@ const char *get_libshare_default_path(void)
 #ifdef WINDOWS
     path = getenv("APPDATA");
 #else
-    path = getenv("HOME");
+    path = getenv("ProgramData");
+    if (!path) path = getenv("HOME");
 #endif
     if (path && *path) {
 #if MAC_OSX
