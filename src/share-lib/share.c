@@ -77,12 +77,14 @@ const char *get_libshare_default_path(void)
 #endif
 
   if (!*ret_path) {
+    path = NULL;
 #ifdef WINDOWS
-    path = getenv("APPDATA");
-#else
     path = getenv("ProgramData");
-    if (!path) path = getenv("HOME");
+    if (!path)
+      path = getenv("APPDATA");
 #endif
+    if (!path)
+      path = getenv("HOME");
     if (path && *path) {
 #if MAC_OSX
       sprintf(pathbuf, "%s/Library/Application Support", path);
