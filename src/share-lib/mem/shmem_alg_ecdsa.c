@@ -1453,7 +1453,7 @@ char *shecdsa_hd_pubkey(char *pubkey, char *chain, uint32_t idx)
   }
   len = 33;
   hex = ecdsa_point_compress(P, len);
-if (strlen(hex) != 66) fprintf(stderr, "DEBUG: shecdsa_hd_pubkey: warning: pubkey is %d characters: '%s'\n", strlen(hex), hex);
+//if (strlen(hex) != 66) fprintf(stderr, "DEBUG: shecdsa_hd_pubkey: warning: pubkey is %d characters: '%s'\n", strlen(hex), hex);
   hex2bin(data, hex, len);
   strncpy(k, hex, sizeof(k)-1);
 
@@ -1463,7 +1463,7 @@ if (strlen(hex) != 66) fprintf(stderr, "DEBUG: shecdsa_hd_pubkey: warning: pubke
   len += sizeof(idx);
 
   /* encode chain as binary (32 byte) segment */
-if (strlen(chain) != 64) fprintf(stderr, "DEBUG: shecdsa_hd_pubkey: warning: chain is %d bytes\n", strlen(chain)/2);
+//if (strlen(chain) != 64) fprintf(stderr, "DEBUG: shecdsa_hd_pubkey: warning: chain is %d bytes\n", strlen(chain)/2);
   hex2bin(chain_data, chain, 32);
  
   /* hash <point+index> using chain as key */
@@ -1553,7 +1553,7 @@ char *shecdsa_hd_privkey(char *secret, char *chain, uint32_t idx)
   idx = htonl(idx); 
   memcpy(data + len, &idx, sizeof(idx)); /* +4 (=37) bytes */
   len += sizeof(idx);
-if (len != 37) fprintf(stderr, "DEBUG: shecdsa_hd_privkey: abnormal hmac data length <%d bytes>.\n", len);
+//if (len != 37) fprintf(stderr, "DEBUG: shecdsa_hd_privkey: abnormal hmac data length <%d bytes>.\n", len);
 #if 0
   memcpy(data + 33, &idx, sizeof(idx)); /* +4 (=37) bytes */
   len = 37;

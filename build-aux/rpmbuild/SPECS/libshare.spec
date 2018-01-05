@@ -1,12 +1,12 @@
 Name:           libshare
-Version:        2.29
-Release:        4%{?dist}
+Version:        3.01
+Release:        1%{?dist}
 Summary:        The share library suite.
 
 Group:          System Environment/Libraries
 License:        GPLv3+
 URL:            http://www.sharelib.net/
-Source0:        http://www.sharelib.net/release/libshare-2.29.tar.gz
+Source0:        http://www.sharelib.net/release/libshare-3.01.tar.gz
 
 BuildRequires:  gcc-java, java-1.8.0-openjdk-devel, swig, help2man, doxygen
 Requires:       java-1.8.0-openjdk
@@ -235,5 +235,5 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Mon Apr 24 2016 Neo Natura <support@neo-natura.com> - 2.29
+* Fri Jan 04 2018 Neo Natura <support@neo-natura.com> - 3.01
 - The RPM release of the libshare software suite.

@@ -41,8 +41,8 @@ noinst_PROGRAMS = sx$(EXEEXT) sxc$(EXEEXT) readsexe$(EXEEXT) \
 	shpatch$(EXEEXT) shstat$(EXEEXT) shpref$(EXEEXT) \
 	shpasswd$(EXEEXT) shpkg$(EXEEXT) shrev$(EXEEXT) shrm$(EXEEXT)
 @WINDOWS_FALSE@am__append_1 = \
-@WINDOWS_FALSE@	libshare.so libshare.so.2 \
-@WINDOWS_FALSE@	libshare.so.2.0.$(version_patch)
+@WINDOWS_FALSE@	libshare.so libshare.so.3 \
+@WINDOWS_FALSE@	libshare.so.3.0.$(version_patch)
 
 @HAVE_DOXYGEN_TRUE@am__append_2 = html man
 subdir = bin
@@ -1484,11 +1484,11 @@ libshare.a:
 libshare.so:
 	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so . 
 
-libshare.so.2:
-	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.2 .
+libshare.so.3:
+	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.3 .
 
-libshare.so.2.0.$(version_patch):
-	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.2.0.$(version_patch) .
+libshare.so.3.0.$(version_patch):
+	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.3.0.$(version_patch) .
 
 sx$(EXEEXT):
 	ln -sf $(top_builddir)/src/sexe/.libs/sx$(EXEEXT) .

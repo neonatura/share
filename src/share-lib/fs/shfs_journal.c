@@ -258,7 +258,7 @@ retry:
     if (!err)
       goto retry;
 
-fprintf(stderr, "DEBUG: shfs_journal_scan: error creating inode [max %d] [jlen %u]\n", ino_max, jlen); 
+//fprintf(stderr, "DEBUG: shfs_journal_scan: error creating inode [max %d] [jlen %u]\n", ino_max, jlen); 
     return (err);
   }
 

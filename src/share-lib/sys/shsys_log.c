@@ -216,11 +216,11 @@ void shlog_write(shbuf_t *buff, int level, int err_code, char *log_str)
     char path[PATH_MAX+1];
 
     memcpy(&peer, ashpeer(), sizeof(peer));
-  #ifdef WINDOWS
-    sprintf(path, "%s\\share\\log\\", getenv("APPDATA"));
-  #else
+#ifdef WINDOWS
+    sprintf(path, "%s\\share\\log\\", getenv("ProgramData"));
+#else
     sprintf(path, "/var/log/share/");
-  #endif
+#endif
     mkdir(path, 0777);
 
     if (!*peer.label)

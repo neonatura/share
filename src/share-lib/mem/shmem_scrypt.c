@@ -77,6 +77,7 @@ badchar:
                                 fprintf(stderr, "DEBUG: hex2bin: str truncated\n");
                         else
                                 fprintf(stderr, "DEBUG: hex2bin: invalid character 0x%02x\n", (int)hexstr[-1]);
+
                         return false;
                 }
                 o = _hex2bin_char((hexstr++)[0]);

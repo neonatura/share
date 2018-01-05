@@ -391,7 +391,7 @@ _TEST(shfs_file_remove)
 
     shbuf_clear(buff);
     _TRUE(0 == shfs_read(file, buff));
-if (shbuf_size(buff) != padd_len) fprintf(stderr, "DEBUG: shbuf_size(buff) = %d (padd = %d)\n", shbuf_size(buff), padd_len);
+//if (shbuf_size(buff) != padd_len) fprintf(stderr, "DEBUG: shbuf_size(buff) = %d (padd = %d)\n", shbuf_size(buff), padd_len);
     _TRUE(shbuf_size(buff) == padd_len);
     _TRUE(0 == memcmp(padd, shbuf_data(buff), padd_len));
 
@@ -516,7 +516,7 @@ int shfs_file_copy(shfs_ino_t *src_file, shfs_ino_t *dest_file)
   /* ensure there is something to copy */
   err = shfs_fstat(src_file, &st);
   if (err) {
-fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_fstat(src_file)\n", err);
+//fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_fstat(src_file)\n", err);
     return (err);
   }
 
@@ -556,7 +556,7 @@ fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_fstat(src_file)\n", err);
     /* apply operation to end-point inode. */
     err = shfs_ref_get(dest_file, &ref_fs, &ref);
     if (err) {
-fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_ref_get(dest_file)\n", err); 
+//fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_ref_get(dest_file)\n", err); 
       return (err);
 }
 
@@ -580,14 +580,14 @@ fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_ref_get(dest_file)\n", err);
   buff = shbuf_init();
   err = shfs_read(src_file, buff);
   if (err) {
-fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_read()\n", err); 
+//fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_read()\n", err); 
     goto done;
 }
 
   err = shfs_write(dest_file, buff);
   shbuf_free(&buff);
   if (err) {
-fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_write()\n", err);
+//fprintf(stderr, "DEBUG: shfs_file_copy: %d = shfs_write()\n", err);
     goto done;
 }
 

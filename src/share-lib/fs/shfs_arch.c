@@ -235,7 +235,6 @@ static enum dump_status _dump_regular_file(sharch_t *arch, int fd, struct tar_st
     }
 
     count = (fd <= 0) ? bufsize : shread(fd, blk->buffer, bufsize);
-fprintf(stderr, "_dump_regular_file: %d = shread(%d, <%d byte>)\n", count, fd, bufsize);
     if (count < 0) {
       pad_archive(arch, size_left);
       return dump_status_short;
