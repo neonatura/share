@@ -171,6 +171,7 @@ int shapp_ident(uint64_t uid, shkey_t **id_key_p)
   shbuf_cat(buff, &m_id, sizeof(m_id));
   q_id = shmsgget(NULL);
   err = shmsg_write(q_id, buff, NULL);
+  shbuf_free(&buff);
   if (err)
     return (err);
 

@@ -116,6 +116,7 @@ typedef lua_State sexe_t;
 #include "sexe_func.h"
 #include "sexe_test.h"
 #include "sexe_event.h"
+#include "sys/sexe_sys.h"
 #else
 typedef uint32_t Instruction;
 int sexe_execv(char *path, char **argv);
@@ -492,7 +493,7 @@ const char *sexe_checkstring(sexe_t *S, int narg);
 
 lua_Number sexe_checknumber(sexe_t *S, int narg);
 
-
+char ac_sexe(void);
 
 /**
  *  @}

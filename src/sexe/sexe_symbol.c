@@ -58,7 +58,7 @@ void print_process_usage(void)
       process_name, get_libshare_email());
 }
 
-void print_process_version(void)
+int print_process_version(void)
 {
 
   printf (
@@ -67,6 +67,8 @@ void print_process_version(void)
       "Copyright 2014 Neo Natura\n"
       "Licensed under the GNU GENERAL PUBLIC LICENSE Version 3\n",
       process_name, SEXE_VERSION);
+
+  return (0);
 }
 
 

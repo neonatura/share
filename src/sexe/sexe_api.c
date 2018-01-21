@@ -286,6 +286,9 @@ int sexe_exec_pcall(sexe_t *S, char *func, shjson_t *json)
 {
   int err;
 
+  if (!S)
+    return (SHERR_INVAL);
+
  lua_getglobal(S, func); /* push global func ref to stack */
   if (!json) {
     err = lua_pcall(S, 0, 0, 0);
@@ -321,6 +324,9 @@ int sexe_exec_prun(sexe_t *S)
 {
   int status;
   int narg = 1;
+
+  if (!S)
+    return (SHERR_INVAL);
 
   status = _api_docall(S, narg, LUA_MULTRET);
   status = _api_report(S, status);

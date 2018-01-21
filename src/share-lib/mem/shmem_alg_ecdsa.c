@@ -1660,6 +1660,7 @@ char *shecdsa_hd_recover_pub(char *secret)
   hex = ecdsa_point_compress(Q, 33);
   if (!hex) return (NULL);
   strncpy(ret_buf, hex, sizeof(ret_buf));
+  free(hex);
 
   mpz_clear(key);
   ecdsa_point_clear(Q);

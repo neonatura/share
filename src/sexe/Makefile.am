@@ -27,7 +27,8 @@ common_includes = \
 	sexe_bin.h \
 	sexe_var.h \
 	sexe_func.h \
-	sexe_event.h
+	sexe_event.h \
+	sys/sexe_sys.h
 
 common_sources = \
 	lapi.c \
@@ -65,6 +66,7 @@ common_sources = \
 	sexe_func.c \
 	sexe_table.c \
 	sexe_event.c \
+	sys/sexe_math.c \
 	$(builddir)/sexe.c
 
 #noinst_PROGRAMS = test_sexe.sx test_event.sx

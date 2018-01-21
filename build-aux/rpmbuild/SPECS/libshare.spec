@@ -6,7 +6,7 @@ Summary:        The share library suite.
 Group:          System Environment/Libraries
 License:        GPLv3+
 URL:            http://www.sharelib.net/
-Source0:        http://www.sharelib.net/release/libshare-3.01.tar.gz
+Source0:        ftp://ftp.sharelib.net/release/libshare/libshare-3.01.tar.gz
 
 BuildRequires:  gcc-java, java-1.8.0-openjdk-devel, swig, help2man, doxygen
 Requires:       java-1.8.0-openjdk

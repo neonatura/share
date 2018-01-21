@@ -571,3 +571,9 @@ int main(int argc, char **argv)
   return (result && status == LUA_OK) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
+/* autoconf */
+char ac_sexe(void)
+{
+  return (0);
+}
+
