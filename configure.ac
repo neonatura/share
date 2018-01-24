@@ -402,12 +402,12 @@ AS_IF([test "x$enable_php" = "xyes"], [AC_CHECK_HEADER([zend.h],
 # NOTE: ubuntu: ln -sf /usr/include/php5 /usr/include/php
 
 AC_ARG_ENABLE([java],
-  AS_HELP_STRING([--disable-java], [Disable java bootstrap compile.]))
-AM_CONDITIONAL(LIBSHARE_JAVA, [test "x$enable_java" != "xno"])
-AS_IF([test "x$enable_java" != "xno"], [AC_CHECK_HEADER([jni.h],
+  AS_HELP_STRING([--enable-java], [Enable java bootstrap compile.]))
+AM_CONDITIONAL(LIBSHARE_JAVA, [test "x$enable_java" = "xyes"])
+AS_IF([test "x$enable_java" = "xyes"], [AC_CHECK_HEADER([jni.h],
     AC_MSG_RESULT([JAVA bootstrap compile enabled])
     AC_DEFINE([HAVE_JNI_H],1,[Enable java native interface.]),
-    AC_MSG_FAILURE([Install java development package or configure --disable-java\n (ubuntu) apt-get install default-jdk; apt-get install gcj-jdk\n (centos) yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel java-1.5.0-gcj libgcj libgcj-devel]))])
+    AC_MSG_FAILURE([Install the java development package.\n (ubuntu) apt-get install default-jdk; apt-get install gcj-jdk\n (centos) yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel java-1.5.0-gcj libgcj libgcj-devel]))])
 
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],

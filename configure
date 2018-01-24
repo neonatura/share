@@ -2461,7 +2461,7 @@ Optional Features:
   --disable-rpath         do not hardcode runtime library paths
   --disable-shared-api    Disable the shared web API.
   --enable-php            Enable php bootstrap compile.
-  --disable-java          Disable java bootstrap compile.
+  --enable-java           Enable java bootstrap compile.
   --enable-debug          enable debugging, default: no
   --disable-ecdsa         Disable the ECDSA algorythm.
 
@@ -78035,7 +78035,7 @@ if test "${enable_java+set}" = set; then
   enableval=$enable_java;
 fi
 
- if test "x$enable_java" != "xno"; then
+ if test "x$enable_java" = "xyes"; then
   LIBSHARE_JAVA_TRUE=
   LIBSHARE_JAVA_FALSE='#'
 else
@@ -78043,7 +78043,7 @@ else
   LIBSHARE_JAVA_FALSE=
 fi
 
-if test "x$enable_java" != "xno"; then
+if test "x$enable_java" = "xyes"; then
   if test "${ac_cv_header_jni_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for jni.h" >&5
 $as_echo_n "checking for jni.h... " >&6; }
@@ -78187,9 +78187,9 @@ _ACEOF
 else
   { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-{ { $as_echo "$as_me:$LINENO: error: Install java development package or configure --disable-java\n (ubuntu) apt-get install default-jdk; apt-get install gcj-jdk\n (centos) yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel java-1.5.0-gcj libgcj libgcj-devel
+{ { $as_echo "$as_me:$LINENO: error: Install the java development package.\n (ubuntu) apt-get install default-jdk; apt-get install gcj-jdk\n (centos) yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel java-1.5.0-gcj libgcj libgcj-devel
 See \`config.log' for more details." >&5
-$as_echo "$as_me: error: Install java development package or configure --disable-java\n (ubuntu) apt-get install default-jdk; apt-get install gcj-jdk\n (centos) yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel java-1.5.0-gcj libgcj libgcj-devel
+$as_echo "$as_me: error: Install the java development package.\n (ubuntu) apt-get install default-jdk; apt-get install gcj-jdk\n (centos) yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel java-1.5.0-gcj libgcj libgcj-devel
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }; }
 fi
