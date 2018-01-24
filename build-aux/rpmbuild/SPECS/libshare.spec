@@ -235,5 +235,5 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Fri Jan 04 2018 Neo Natura <support@neo-natura.com> - 3.01
+* Tue Jan 23 2018 Neo Natura <support@neo-natura.com> - 3.01
 - The RPM release of the libshare software suite.
