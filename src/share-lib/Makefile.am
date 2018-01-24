@@ -20,7 +20,8 @@ test_xd3_SOURCES = $(srcdir)/mem/delta/shxd_test.c $(xd3_headers)
 test_xd3_CFLAGS = -DREGRESSION_TEST -DSHELL_TESTS=0
 
 
-TESTS = test_libshare_static test_libshare test_xd3
+TESTS = test_libshare_static
+# test_libshare test_xd3
 
 if LINUX
 install-exec-hook:

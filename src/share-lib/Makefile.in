@@ -37,8 +37,7 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test_libshare$(EXEEXT) test_libshare_static$(EXEEXT) \
 	test_xd3$(EXEEXT)
-TESTS = test_libshare_static$(EXEEXT) test_libshare$(EXEEXT) \
-	test_xd3$(EXEEXT)
+TESTS = test_libshare_static$(EXEEXT)
 
 #gnu_sources += $(top_srcdir)/src/gnu/open.c
 @WINDOWS_FALSE@am__append_1 = $(top_srcdir)/src/gnu/fnmatch.c
@@ -8913,6 +8912,7 @@ uninstall-am: uninstall-libLIBRARIES uninstall-libLTLIBRARIES
 	tags uninstall uninstall-am uninstall-libLIBRARIES \
 	uninstall-libLTLIBRARIES
 
+# test_libshare test_xd3
 
 @LINUX_TRUE@install-exec-hook:
 @LINUX_TRUE@	mkdir -p /var/lib/share

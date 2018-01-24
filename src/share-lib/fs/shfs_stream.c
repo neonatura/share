@@ -959,7 +959,8 @@ _TEST(shfwrite)
       err = shread(fd, CHUNK, CHUNK_SIZE);
       _TRUE(err == CHUNK_SIZE);
 
-      _TRUE(CHUNK[0] == ((cycle * idx) % 256));
+      ch = (unsigned char)((cycle * idx) % 256);
+      _TRUE(CHUNK[0] == ch);
     }
   }
 

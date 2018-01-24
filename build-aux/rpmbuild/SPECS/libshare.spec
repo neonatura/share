@@ -56,7 +56,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %doc
 %{_libdir}/*.so.*
-%{_libdir}/*.jar
 %{_bindir}/readsexe
 %{_bindir}/shattr
 %{_bindir}/shcat
@@ -65,7 +64,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/shdiff
 %{_bindir}/shinfo
 %{_bindir}/shln
-%{_bindir}/shlog
 %{_bindir}/shls
 %{_bindir}/shpasswd
 %{_bindir}/shpatch
@@ -80,9 +78,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/shdb
 %{_bindir}/shfsck
 %{_bindir}/shpkg
+%{_bindir}/shalg
+%{_bindir}/shgeo
+%{_bindir}/shz
+%{_bindir}/shapp
 %{_docdir}/libshare/libshare_html.tar.gz
-%{_sbindir}/shared
-%{_sbindir}/shfsyncd
 %{_mandir}/man1/readsexe.1.gz
 %{_mandir}/man1/shattr.1.gz
 %{_mandir}/man1/shcat.1.gz
@@ -90,6 +90,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/shdelta.1.gz
 %{_mandir}/man1/shdiff.1.gz
 %{_mandir}/man1/shinfo.1.gz
+%{_mandir}/man1/shalg.1.gz
+%{_mandir}/man1/shgeo.1.gz
+%{_mandir}/man1/shz.1.gz
 %{_mandir}/man1/shln.1.gz
 %{_mandir}/man1/shls.1.gz
 %{_mandir}/man1/shpasswd.1.gz
