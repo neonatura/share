@@ -286,7 +286,7 @@ size_t orig_len = stream->buff_max;
 
   /* reduce [as needed] */
   if (shbuf_size(stream->buff) > len)
-    shbuf_truncate(stream, len);
+    shbuf_truncate(stream->buff, len);
 
   /* sanity */
   stream->buff_pos = MIN(stream->buff_pos, len);
@@ -604,7 +604,7 @@ _TEST(shftruncate)
     fd = shopen("shftrunc", "a", fs);
     _TRUE(fd > 0);
 
-    for (idx = 0; idx < 1024; idx++) {
+    for (idx = 0; idx < 4; idx++) {
       err = shwrite(fd, CHUNK, CHUNK_SIZE);
       _TRUE(err == CHUNK_SIZE);
     }
