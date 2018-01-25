@@ -362,6 +362,9 @@ static char *shcrypt_sha512_r(const char *key, const char *salt, char *buffer, i
 	const char *num;
 	bool rounds_custom;
 
+  memset(alt_result, 0, sizeof(alt_result));
+  memset(temp_result, 0, sizeof(temp_result));
+
 	copied_key = NULL;
 	copied_salt = NULL;
 

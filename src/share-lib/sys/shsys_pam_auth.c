@@ -210,6 +210,8 @@ int shpam_auth_crypt_verify(char *username, unsigned char *pass_data, size_t pas
   int idx;
   int err;
 
+  memset(cr_salt, 0, sizeof(cr_salt));
+
   memset(uname, 0, sizeof(uname));
   if (!username || !*username) {
 #ifdef HAVE_GETPWNAM

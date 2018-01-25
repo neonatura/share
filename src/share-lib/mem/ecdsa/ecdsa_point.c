@@ -409,6 +409,7 @@ char* ecdsa_point_compress(ecdsa_point P, size_t len)
     strcpy(result + 2, x_hex);
   }
 #endif
+  free(x_hex);
 
 	//Determine if it's odd or even
 	mpz_mod_ui(t1, P->y, 2);
