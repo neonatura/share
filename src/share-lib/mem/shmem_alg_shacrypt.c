@@ -364,7 +364,7 @@ static char *shcrypt_sha512_r(const char *key, const char *salt, char *buffer, i
 
   memset(alt_result, 0, sizeof(alt_result));
   memset(temp_result, 0, sizeof(temp_result));
-  memset(buffer, buflen);
+  memset(buffer, '\000', buflen);
 
 	copied_key = NULL;
 	copied_salt = NULL;
