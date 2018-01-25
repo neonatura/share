@@ -299,11 +299,11 @@ _TEST(shuser_login)
   err = shuser_pass_set("test", priv, "test");
   _TRUE(err == 0);
 
-  err = shuser_login("test", "test", NULL);
-  _TRUE(err == 0);
-
   err = shuser_login("test", "wrong test", NULL);
   _TRUE(err == SHERR_ACCESS);
+
+  err = shuser_login("test", "test", NULL);
+  _TRUE(err == 0);
 
   err = shuser_remove("test", priv);
   _TRUE(err == 0);

@@ -217,7 +217,7 @@ int shpam_auth_crypt_verify(char *username, unsigned char *pass_data, size_t pas
 #ifdef HAVE_GETPWNAM
     pw = getpwuid(geteuid());
     if (!pw)
-      return (-errno);
+      return (SHERR_NOENT);
     strncpy(uname, pw->pw_name, sizeof(uname)-1);
 #endif
   } else {
@@ -227,7 +227,7 @@ int shpam_auth_crypt_verify(char *username, unsigned char *pass_data, size_t pas
 
   sp = getspnam(uname);
   if (!sp)
-    return (-errno);
+    return (SHERR_ACCESS);
 
   str = sp->sp_pwdp; /* use shadow passwd */
   if (!str && 0 != strncmp(str, "$6$", 3))
