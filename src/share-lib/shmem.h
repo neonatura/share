@@ -4020,6 +4020,15 @@ double shjson_num(shjson_t *json, char *name, double def_d);
 shjson_t *shjson_num_add(shjson_t *tree, char *name, double num);
 
 /**
+ * Add a null value to a JSON object or array.
+ * @param tree The JSON object or array to add the null value.
+ * @param name The name of the number JSON node or NULL if adding to an array.
+ * @returns The new JSON node containing the null value.
+ */
+shjson_t *shjson_null_add(shjson_t *tree, char *name);
+
+
+/**
  * Create a new JSON tree hierarchy.
  * @param json_str A JSON formatted text string or NULL.
  * @returns A new JSON object if @c json_str is null or a full JSON node hierarchy otherwise.
