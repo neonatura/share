@@ -1,6 +1,3 @@
-share
-====
-
 <h1>The Share Library Suite</h1>
 
 This is the official source code repository for the share runtime library and utility suite. 
@@ -34,8 +31,6 @@ SWIG is optional. Pre-built source code has been generated as part of the distri
 
 <h2>Library Specifications</h2> 
 
-<h3>Features</h3>
-
 <h4>Networking / IPC</h4>
 Provides simplified standard socket processing in addition to a proprietary ESL (encoded stream layer) protocol for encryption communications.
 
@@ -47,7 +42,7 @@ The share library provides simulated block devices in order to stream file data 
 
 The share library supports POSIX style share memory mapping, message queues, and memory mapped files. The mapped files may preside on a local file system or a shared file.
 
-<h4>Memory Routines</h4>
+<h4>Memory Handling</h4>
 A full set of SHA, ECDSA, and other encryption methods are supplied. Binary encoding methods are also provided for base32, base58, base64, and more. See the shalg utility program for example usage.
 
 Hierarchial objects storage methods for B-Tree, JSON, SHZ (share compression), common zlib, and more is provided.
@@ -56,7 +51,7 @@ Integrated support for big numbers is provided using the libshare proprietary me
 
 Memory buffers and pools are provided for dynamic storage.
 
-<h4>File-system Routines</h4>
+<h4>File-system</h4>
 A proprietary embedded file-system is provided which includes extended attributes such as milli-second precision, multiple computer file-sharing, file compression, file encryption, sqlite databases, source code revision history, and more.
 
 The share library introduces a flexible approach to inter-process communication by combining a shared memory map with a versioned file system.
@@ -67,11 +62,26 @@ File data is saved persistently with access rights based on the peer reading or 
 
 The structure of the file system is designed in order to allow for multiple hierarchies simutaneously. The file system contains "meta file" definitions which allow for a program dynamically interpret how to handle file data. 
 
+<h4>System/Process</h4>
+A proprietary set of certification routines are provided which are compatible with the X509 standard.
+
+A PAM (password authentication module) with extended validation (such as 2fa) and remote access support.
+
+The ability to manage and communicate with a set of spawned processes.
+
+A package manager which supports light-weight DRM using the libshare certification module.
+
+A message queue IPC communication interface is provided which has optimized delivery speeds and larger than typical payload allowances. 
+
+Geodetic manipulation routines including a pre-supplied database of over one-million common locations. 
+
+A simplified buffered logging with severity level filter is provided.
+
 <h4>Portability</h4>
 
 The share library supports API calls from both php and java.
 
-The libshare library introduces a new programming language called "SEXE" which is based on the LUA scripting language provided by puerto-rico university. The suite includes the "sxc" (SEXE binary compiler) and "sx" (SEXE executor) programs for respectively compiling and running SEXE programs. In addition, SEXE programs can be run directly from the "nsh" shell.
+The libshare library introduces a new programming language called "SEXE" which is based on the LUA scripting language provided by puerto-rico university. The suite includes the "sxc" (SEXE binary compiler) and "sx" (SEXE executor) programs for respectively compiling and running SEXE programs. In addition, SEXE programs can be run directly from the "sxsh" shell.
 
 Link against the "share_sexe" library for access to the SEXE runtime calls.
 
