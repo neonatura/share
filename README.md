@@ -1,11 +1,9 @@
 share
 ====
 
-<b>The Share Library Project.</b>
+<h1>The Share Library Suite</h1>
 
-This is the official source code repository for the share runtime library. 
-
-The share library introduces a new model of handling IPC and Internet communications. Supplies documented API with POSIX and convienence calls for networking applications.
+This is the official source code repository for the share runtime library and utility suite. 
 
 Version: 3.1
 
@@ -36,38 +34,45 @@ SWIG is optional. Pre-built source code has been generated as part of the distri
 
 <h2>Library Specifications</h2> 
 
-<h3>Internet </h3>
+<h3>Features</h3>
 
-Network communications can be performed in a traditional manner in order to replace the TCP protocol with the share library's built-in Encoded Stream Protocol.
+<h4>Networking / IPC</h4>
+Provides simplified standard socket processing in addition to a proprietary ESL (encoded stream layer) protocol for encryption communications.
 
-The Encoded Stream Protocol introduces several enhancement over the original 1981 TCP model. TCP was designed for a much different virtual-verse than what is available in the 21st century.
+A "peer tracking" interface provides the ability to keep track of peer connections based on their reliability.
 
-The Encoded Stream Protocol provides extra security, built-in stream compression, backwards compatibility, packet route probing, optimized route detection, and increases the maximum limitations on the amount of data that can be sent in a single interval of time.
-
-Large stream buffer support (over 64k per r/w) which minimizes critical program termination due to socket errors.
-
-The Share Library also implements maximum operating system thresholds and the ability to accept more than 1024 sockets by a single process, 
-
-<h3>Inter-Process Communication (IPC)</h3>
-
-The share library supports POSIX style share memory mapping, message queues, and memory mapped files. The mapped files may preside on a local file system or a shared file.
+The network routines are compatible with operating systems which can handle more than 64k socket buffer size and more than 1024 sockets per process.
 
 The share library provides simulated block devices in order to stream file data between multiple endpoints. Permissions allow control of whether the stream is readable, writeable, or executable. 
 
-- Shared Filesystem
+The share library supports POSIX style share memory mapping, message queues, and memory mapped files. The mapped files may preside on a local file system or a shared file.
+
+<h4>Memory Routines</h4>
+A full set of SHA, ECDSA, and other encryption methods are supplied. Binary encoding methods are also provided for base32, base58, base64, and more. See the shalg utility program for example usage.
+
+Hierarchial objects storage methods for B-Tree, JSON, SHZ (share compression), common zlib, and more is provided.
+
+Integrated support for big numbers is provided using the libshare proprietary method or the standard MPI functionality.
+
+Memory buffers and pools are provided for dynamic storage.
+
+<h4>File-system Routines</h4>
+A proprietary embedded file-system is provided which includes extended attributes such as milli-second precision, multiple computer file-sharing, file compression, file encryption, sqlite databases, source code revision history, and more.
 
 The share library introduces a flexible approach to inter-process communication by combining a shared memory map with a versioned file system.
 
-The sharefs file system utilitizes the operating system's file cache in order to simulate a shared memory segment. 
+The sharefs file system utilitizes the operating system file cache in order to simulate a shared memory segment. 
 
 File data is saved persistently with access rights based on the peer reading or writing the file. Several version of the same file may exist, and based on the trust level with another sharefs peer multiple copies of the same file may exist.
 
 The structure of the file system is designed in order to allow for multiple hierarchies simutaneously. The file system contains "meta file" definitions which allow for a program dynamically interpret how to handle file data. 
 
-<h3>Portability</h3>
+<h4>Portability</h4>
 
-Support share library API calls are accessible from php and java.
+The share library supports API calls from both php and java.
 
-The SEXE language and compiler is intended to be compatible on multiple platforms.
+The libshare library introduces a new programming language called "SEXE" which is based on the LUA scripting language provided by puerto-rico university. The suite includes the "sxc" (SEXE binary compiler) and "sx" (SEXE executor) programs for respectively compiling and running SEXE programs. In addition, SEXE programs can be run directly from the "nsh" shell.
 
+Link against the "share_sexe" library for access to the SEXE runtime calls.
 
+The share library can be compiled on the unix (posix) and windows based platforms.
