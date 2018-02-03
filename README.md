@@ -4,7 +4,8 @@ This is the official source code repository for the share runtime library and ut
 
 Version: 3.1
 
-API: <a href="http://www.sharelib.net/libshare/">Share Library Documentation</a>
+Download: <a href="http://sharelib.net/download/libshare/">Share Library Documentation</a>
+Documentation: <a href="http://sharelib.net/libshare/">Share Library Documentation</a>
 
 <h2>Quick Instructions</h2>
 
