@@ -5,9 +5,9 @@ This is the official source code repository for the share runtime library and ut
 
 <a href="http://sharelib.net/libshare/">Share Library Documentation</a>
 
-[[Library Specifications|The-Share-Library-Suite]]
+[Library Specifications](../../wiki/The-Share-Library-Suite)
 
-[[SEXE Programming Language|SEXE-Programming-Language]]
+[SEXE Programming Language](../../wiki/SEXE-Programming-Language)
 
 <h2>Executable Binaries</h2>
 
@@ -15,7 +15,7 @@ This is the official source code repository for the share runtime library and ut
 
 <h2>Compiling Instructions</h2>
 
-[[Linux Compiling|Linux-Compiling]]
+[Linux Compiling](../../wiki/Linux-Compiling)
 
-[[Windows Compiling|Windows-Compiling]]
+[Windows Compiling](../../wiki/Windows-Compiling)
 
