@@ -60,10 +60,9 @@ void print_process_usage(void)
       "\t-o<path>\t\t\tSpecifies a output file path.\n"
 */
       "\n"
-      "Visit 'https://github.com/neonatura/share' for more information.\n"
-      "See 'man libshare' for additional manuals on the Share Library.\n"
-      "Report bugs to <%s>.\n",
-      get_libshare_title(), process_path, get_libshare_email());
+      "Visit 'https://sharelib.net/libshare/' for more information.\n"
+      "See 'man libshare' for additional manuals on the Share Library.\n",
+      get_libshare_title(), process_path);
 }
 
 int sharelog_list(shpeer_t *peer, time_t stime, time_t etime)

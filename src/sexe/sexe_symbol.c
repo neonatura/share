@@ -53,9 +53,8 @@ void print_process_usage(void)
       "Files:\n"
       "\tOne or more files which contain Lua source code or pre-compiled SEXE bytecode.\n"
       "\n"
-      "Visit 'http://docs.sharelib.net/' for libshare API documentation.\n"
-      "Report bugs to <%s>.\n",
-      process_name, get_libshare_email());
+      "Visit 'http://sharelib.net/libshare/' for libshare API documentation.\n",
+      process_name);
 }
 
 int print_process_version(void)

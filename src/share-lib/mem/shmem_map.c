@@ -350,6 +350,11 @@ char *shmap_get_str(shmap_t *h, shkey_t *key)
 #endif
 }
 
+int64_t shmap_get_num(shmap_t *h, shkey_t *key)
+{
+  return ((int64_t)shmap_get(h, key));
+}
+
 void *shmap_get_ptr(shmap_t *h, shkey_t *key)
 {
   return (shmap_get(h, key));
@@ -587,6 +592,11 @@ int shmap_set_ent(shmap_t *ht, shkey_t *key, int map_flag, void *val, ssize_t va
 void shmap_set(shmap_t *ht, shkey_t *key, const void *val)
 {
   shmap_set_ent(ht, key, 0, val, 0);
+}
+
+void shmap_set_num(shmap_t *ht, shkey_t *key, int64_t val)
+{
+  shmap_set_ent(ht, key, 0, (const void *)val, 0);
 }
 
 _TEST(shmap_get)

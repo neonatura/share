@@ -1,12 +1,28 @@
+
 /*
-** $Id: luaconf.h,v 1.170 2011/12/06 16:58:36 roberto Exp $
-** Configuration file for Lua
-** See Copyright Notice in lua.h
-*/
+ *  Copyright 2014 Neo Natura
+ *
+ *  This file is part of the Share Library.
+ *  (https://github.com/neonatura/share)
+ *        
+ *  The Share Library is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version. 
+ *
+ *  The Share Library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with The Share Library.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 
 
-#ifndef lconfig_h
-#define lconfig_h
+#ifndef __SEXE_CONF_H__
+#define __SEXE_CONF_H__
 
 #include <limits.h>
 #include <stddef.h>
@@ -97,6 +113,9 @@
 #define LUA_PATH_DEFAULT  \
 		LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
 		LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua;" ".\\?.lua"
+#define LUA_SPATH_DEFAULT  \
+		LUA_LDIR"?.sx;"  LUA_LDIR"?/init.sx;" \
+		LUA_CDIR"?.sx;"  LUA_CDIR"?/init.sx;" "./?.sx"
 #define LUA_CPATH_DEFAULT \
 		LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll;" ".\\?.dll"
 
@@ -109,6 +128,9 @@
 #define LUA_PATH_DEFAULT  \
 		LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
 		LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua;" "./?.lua"
+#define LUA_SPATH_DEFAULT  \
+		LUA_LDIR"?.sx;"  LUA_LDIR"?/init.sx;" \
+		LUA_CDIR"?.sx;"  LUA_CDIR"?/init.sx;" "./?.sx"
 #define LUA_CPATH_DEFAULT \
 		LUA_CDIR"?.so;" LUA_CDIR"loadall.so;" "./?.so"
 #endif			/* } */
@@ -132,6 +154,12 @@
 ** CHANGE it if you do not like this name.
 */
 #define LUA_ENV		"_ENV"
+
+/* persistently stored public variables */
+#define PUBLIC_ENV "_PUBLIC"
+
+#define EVENT_ENV "_EVENT"
+
 
 
 /*
@@ -213,9 +241,9 @@
 ** avoids including 'stdio.h' everywhere.)
 */
 #if defined(LUA_LIB) || defined(lua_c)
-#include <stdio.h>
-#define luai_writestring(s,l)	fwrite((s), sizeof(char), (l), stdout)
-#define luai_writeline()	(luai_writestring("\n", 1), fflush(stdout))
+#include "sexe_io.h"
+#define luai_writestring(s,l)	fwrite((s), sizeof(char), (l), get_sexe_stdout())
+#define luai_writeline()	luai_writestring("\n", 1)
 #endif
 
 /*
@@ -518,15 +546,8 @@
 
 
 
-
-/* =================================================================== */
-
-/*
-** Local configuration. You can use this space to add your redefinitions
-** without modifying the main part of the file.
-*/
+#define SEXE_API
 
 
-
-#endif
+#endif /* ndef __SEXE_CONF_H__ */
 

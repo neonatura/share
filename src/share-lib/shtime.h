@@ -30,7 +30,12 @@
 
 
 /**
- * Time operations are performed in order to store and compare timestamps in the sharefs file system and for network operations. 
+ * Time operations are performed in order to store and compare time metrics.
+ * 
+ * This library utilizes a 64-bit number in order to provide milli-second precision. The "shtime_t" value is stored in big-endian byte order, and can be copied directly to other (64-bit) computer platforms.
+ * 
+ * The "Epoch" for this time value starts at 01/01/2000 UTC. Use the shtimef() function in order to manage the time as a floating point value, or shutime() to convert to a standard unix-timevalue . You must use the underlying functions, such as shtimems() or shtime_diff(), to access the "shtime_t" value.
+ * 
  * @ingroup libshare
  * @defgroup libshare_time System Time Routines
  * @{

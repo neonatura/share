@@ -343,6 +343,15 @@ typedef struct shpriv_t
 } shpriv_t;
 
 
+typedef struct shpam_t
+{
+	uint64_t uid;
+	shkey_t ident;
+	shfs_ino_t *file;
+	shfs_t *fs;
+} shpam_t;
+
+
 /** A unique reference to a share account. */
 uint64_t shpam_uid(char *username);
 
@@ -405,12 +414,15 @@ int shuser_verify(char *acc_name);
 /** Notify the shared daemon of an account. */
 int shuser_inform(uint64_t uid);
 
-int shuser_admin_default(shpriv_t **priv_p);
+int shuser_admin_default(char *acc_name, shpriv_t **priv_p);
 
 
 
 /* pam - shadow */
 
+shpam_t *shpam_open(uint64_t uid);
+shpam_t *shpam_open_name(char *acc_name);
+void shpam_close(shpam_t **pam_p);
 
 int shpam_shadow_login(shfs_ino_t *file, char *acc_name, uint32_t code_2fa, unsigned char *pass_data, size_t pass_len, shpriv_t **priv_p);
 
@@ -425,8 +437,6 @@ int shpam_shadow_set(shfs_ino_t *file, uint64_t uid, shpriv_t *priv, int cmd, un
 int shpam_shadow_uid_verify(shfs_ino_t *file, uint64_t uid);
 
 shjson_t *shpam_shadow_json(shfs_ino_t *file, uint64_t uid);
-
-shfs_ino_t *shpam_shadow_file(shfs_t **fs_p);
 
 int shpam_shadow_remote_set(shfs_ino_t *file, uint64_t uid, shauth_t *auth);
 
@@ -518,15 +528,19 @@ shkey_t *shapp_kpub(shpeer_t *peer);
 
 
 /**
- * Write verbose, debug, and error messages to a process specific log file.
+ * Write informational, warnings, and error messages to a process specific log file.
  * @ingroup libshare_sys
  * @defgroup libshare_syslog Process Logging
  * @{
  */
+
+#define SHLOG_NONE 0
 #define SHLOG_INFO 1
 #define SHLOG_WARNING 2
 #define SHLOG_ERROR 3
 #define SHLOG_RUSAGE 4
+
+#define MAX_SHLOG_LEVEL 5
 
 /** Perform a generic logging operation. */
 int shlog(int level, int err_code, char *log_str);
@@ -539,6 +553,18 @@ void shwarn(char *log_str);
 
 /** Log a informational message.  */
 void shinfo(char *log_str);
+
+/** The directory where log files are written. */
+const char *shlog_path(void);
+
+/** Set the directory where log files are written. */
+int shlog_path_set(const char *path);
+
+void shlog_level_set(int level);
+
+int shlog_level(void);
+
+
 /**
  * @}
  */

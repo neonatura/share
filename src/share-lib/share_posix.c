@@ -90,6 +90,14 @@ int shclose(int fd)
   return (0);
 }
 
+int shtmpfile(void)
+{
+	char path[PATH_MAX+1];
+	int err;
+
+	sprintf(path, "/sys/tmp/tmpfile_%-8.8x", (unsigned int)shrand());
+	return (shopen(path, "rw", NULL));
+}
 
 int shfsetpos(int fd, size_t pos)
 {
@@ -312,6 +320,40 @@ int shfattr_set(int fd, int attr)
   return (shfs_attr_set(stream->file, attr));
 }
 
+ssize_t shfsize(int fd)
+{
+  shfstream_t *stream;
+
+  stream = shfstream_get(fd);
+  if (!stream)
+    return (SHERR_NOENT);
+
+	return (stream->buff_max);
+}
+
+
+int shfgetc(int fd)
+{
+  shfstream_t *stream;
+	char buf[8];
+	ssize_t ret;
+
+	memset(buf, 0, sizeof(buf));
+
+  stream = shfstream_get(fd);
+	if (!stream) {
+		ret = read(fd, buf, 1);
+	} else {
+		ret = shfstream_read(stream, buf, 1); 
+	}
+	if (ret < 0)
+		return ((int)ret);
+
+	return (buf[0]);
+}
+
+
+
 #if 0
 DIR *shopendir(const char *name, shfs_t *fs)
 {
@@ -351,3 +393,5 @@ int closedir(DIR *dirp)
 
 /* if !dirent.h define struct DIR, dirent */
 #endif
+
+

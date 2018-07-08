@@ -1954,7 +1954,17 @@ char *shfs_cert_filename(shesig_t *cert);
 #define SHMIME_APP_SQLITE "application/x-sqlite3"
 #define SHMIME_APP_SEXE "application/x-sexe"
 
-#define MAX_DEFAULT_SHARE_MIME_TYPES 10
+#define SHMIME_APP_BZ2 "application/bz2"
+#define SHMIME_APP_RAR "application/rar"
+#define SHMIME_APP_ZIP "application/zip"
+#define SHMIME_APP_XZ "application/xz"
+#define SHMIME_APP_WIN "application/exe"
+
+#define SHMIME_IMG_GIF "image/gif"
+#define SHMIME_IMG_PNG "image/png"
+#define SHMIME_IMG_JPEG "image/jpeg"
+
+#define MAX_DEFAULT_SHARE_MIME_TYPES 18
 
 /**
  * Maximum length of a file's header to scan in order to detect mime type.
@@ -2119,6 +2129,8 @@ int shopen(const char *path, const char *mode, shfs_t *fs);
  */
 int shclose(int fd);
 
+int shtmpfile(void);
+
 /** Set the current seek offset in a sharefs file stream. */
 int shfsetpos(int fd, size_t pos);
 
@@ -2156,6 +2168,9 @@ int shftruncate(int fd, size_t len);
 /** Obtain file information using POSIX style "stat" struct. */
 int shfstat(int fd, struct stat *buf);
 
+ssize_t shfsize(int fd);
+
+int shfgetc(int fd);
 
 /**
  * @}

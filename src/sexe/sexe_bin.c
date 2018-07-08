@@ -40,14 +40,13 @@
 #include "ldo.h"
 #include "sexe_compile.h"
 
+
+#define PROGNAME "SEXE"
+#define FUNCTION "(function()end)();"
+
 int run_flags;
 
 
-void sexe_error(LoadState* S, const char* why)
-{
- luaO_pushfstring(S->L,"%s: %s precompiled chunk",S->name,why);
- luaD_throw(S->L,LUA_ERRSYNTAX);
-}
 
 #define LoadMem(S,b,n,size)	LoadBlock(S,b,(n)*(size))
 #define LoadByte(S)		(lu_byte)LoadChar(S)
@@ -61,6 +60,14 @@ void sexe_error(LoadState* S, const char* why)
 
 #define DumpMem(b,n,size,D)	DumpBlock(b,(n)*(size),D)
 #define DumpVar(x,D)		DumpMem(&x,1,sizeof(x),D)
+
+#define toproto(L,i) getproto(L->top+(i))
+
+void sexe_error(LoadState* S, const char* why)
+{
+ luaO_pushfstring(S->L,"%s: %s precompiled chunk",S->name,why);
+ luaD_throw(S->L,LUA_ERRSYNTAX);
+}
 
 void DumpBlock(const void* b, size_t size, DumpState* D)
 {
@@ -175,9 +182,9 @@ void DumpFunction(const Proto* f, DumpState* D)
 {
  DumpInt(f->linedefined,D);
  DumpInt(f->lastlinedefined,D);
+ DumpInt(f->maxstacksize,D);
  DumpChar(f->numparams,D);
  DumpChar(f->is_vararg,D);
- DumpChar(f->maxstacksize,D);
  DumpCode(f,D);
  DumpConstants(f,D);
  DumpUpvalues(f,D);
@@ -491,11 +498,11 @@ Proto* SexeLoadFunction(LoadState* S)
   VERBOSE("[FUNCTION] source #%x\n", func.func_source);
 
   memset(&stack, 0, sizeof(stack));
-  stack.type = -1;
+  stack.type = SESTACK_MASK;
   while (stack.type != SESTACK_NONE) {
     memset(&stack, 0, sizeof(stack));
     LoadBlock(S, &stack, sizeof(stack));
-    VERBOSE("[STACK] type:%d size:%d\n", stack.type, stack.size);
+    VERBOSE("[STACK] type:%d size:%d\n", (int)stack.type, stack.size);
     switch (stack.type) {
       case SESTACK_INSTRUCTION:
         SexeLoadCode(S, f, &stack);
@@ -559,8 +566,9 @@ void SexeLoadHeader(LoadState* S)
     sexe_error(S, "corrupt");
   }
 
-  if (*lhdr->name)
+  if (*lhdr->name) {
     S->name = lhdr->name;
+	}
  
   VERBOSE("[HEADER] '%s' v%d <%d bytes>\n", lhdr->name, lhdr->ver, SEXE_HEADERSIZE);
 }
@@ -704,6 +712,10 @@ int sexe_loadmem(lua_State *L, char *name, shbuf_t *buff)
 //  LoadF lf;
   int status;
   int fnameindex = lua_gettop(L) + 1;  /* index of filename on the stack */
+
+//	L->name = name;
+	memcpy(&L->pname, ashkey_str(name), sizeof(L->pname));
+
   if (name == NULL) {
     lua_pushliteral(L, "=stdin");
 //    lf.f = stdin;
@@ -785,6 +797,7 @@ int sexe_parser(lua_State *L, ZIO *z, const char *name, const char *mode)
   return status;
 }
 
+
 int sexe_load(lua_State *L, lua_Reader reader, void *data, const char *chunkname, const char *mode) 
 {
   ZIO z; 
@@ -822,6 +835,9 @@ Proto *sexe_undump (lua_State* L, ZIO* Z, Mbuffer* buff, const char* name)
   S.Z=Z;
   S.b=buff;
   SexeLoadHeader(&S);
+
+	memcpy(&L->pname, ashkey_str(S.name), sizeof(L->pname));
+
   return luai_verifycode(L,buff,SexeLoadFunction(&S));
 }
 
@@ -942,7 +958,7 @@ static int SexeDumpUpvaluesDebug(const Proto* f, DumpState* D)
   stack.size = shbuf_size(buff);
   
   DumpBlock(&stack, sizeof(stack), D); 
-  DumpBlock(shbuf_data(buff), stack.size, D); 
+  DumpBlock(shbuf_data(buff), (size_t)stack.size, D); 
 
   shbuf_free(&buff);
 
@@ -1026,7 +1042,6 @@ static void SexeDumpFunctions(const Proto *f, DumpState *D)
 
   for (i = 0; i < stack.size; i++) {
     SexeDumpFunction(f->p[i],D);
-
   }
 
 }
@@ -1049,7 +1064,7 @@ void SexeDumpFunction(const Proto* f, DumpState* D)
   func.param_max = f->numparams;
   func.stack_max = f->maxstacksize;
   DumpBlock(&func, sizeof(func), D);
-  VERBOSE("[FUNCTION] initialized : source #%x\n", func.func_source);
+	VERBOSE("[FUNCTION] initialized : source #%x\n", func.func_source);
 
   SexeDumpCode(f, D);
   if (!(run_flags & RUNF_STRIP))
@@ -1100,3 +1115,97 @@ int sexe_dump (lua_State *L, lua_Writer writer, void *data)
   return status;
 }
 
+static const char* reader(lua_State *L, void *ud, size_t *size)
+{
+	UNUSED(L);
+	if ((*(int*)ud)--)
+	{
+		*size=sizeof(FUNCTION)-1;
+		return FUNCTION;
+	}
+	else
+	{
+		*size=0;
+		return NULL;
+	}
+}
+const Proto *sexe_compile_combine(lua_State* L, int n)
+{
+ if (n==1)
+  return toproto(L,-1);
+ else
+ {
+  Proto* f;
+  int i=n;
+  if (sexe_load(L,reader,&i,"=(" PROGNAME ")",NULL)!=LUA_OK)  {
+	//fatal(lua_tostring(L,-1));
+		return (NULL);
+	}
+  f=toproto(L,-1);
+  for (i=0; i<n; i++)
+  {
+   f->p[i]=toproto(L,i-n-1);
+   if (f->p[i]->sizeupvalues>0) f->p[i]->upvalues[0].instack=0;
+  }
+  f->sizelineinfo=0;
+  return f;
+ }
+}
+
+Proto *sexe_compile(lua_State *L, int argc, char **argv)
+{
+  const Proto* f;
+	char *out_path;
+  int tot;
+	int err;
+  int i;
+
+	if (argc < 2)
+		return (NULL); /* in + out (min) */
+	out_path = argv[0];
+
+  tot = 0;
+	err = 0;
+  for (i = 1; i < argc; i++) {
+    if (0 == strcmp(argv[i], out_path)) continue;
+
+		/* register in order to bypass 'require' */
+		{
+			char modname[256];
+			char *ptr;
+
+			memset(modname, 0, sizeof(modname));
+			strncpy(modname, argv[i], sizeof(modname)-1);
+			ptr = strrchr(modname, '.');
+			if (ptr) *ptr = '\000'; /* kill ext */
+
+			luaL_findtable(L, LUA_REGISTRYINDEX, "_LOADED", 1);  /* get _LOADED table */
+			lua_getfield(L, -1, modname);  /* get _LOADED[modname] */
+			if (lua_isnil(L, -1)) { /* not set */
+				lua_pop(L, 1);  /* remove previous result */
+				lua_pushboolean(L, 1); /* enabled */
+				lua_setfield(L, -2, modname);  /* _LOADED[modname] = true */
+			} else {
+				lua_pop(L, 1); /* pop value */
+			}
+			lua_remove(L, -1);  /* remove _LOADED table */
+		}
+
+    if (sexe_loadfile(L,argv[i], NULL)!=LUA_OK)
+			return (NULL);
+
+    tot++;
+  }
+
+	return (sexe_compile_combine(L, tot));
+}
+
+sexe_t *sexe_init(void)
+{
+  return ((sexe_t *)luaL_newstate());
+}
+
+int sexe_compile_writer(lua_State* L, const void* p, size_t size, void* u)
+{
+ return (fwrite(p,size,1,(FILE*)u)!=1) && (size!=0);
+}

@@ -253,7 +253,7 @@ int sharetool_passwd(char **args, int arg_cnt)
       pwd_flags |= SHPAM_EXPIRE;
     } else if (0 == strcmp(args[i], "-k")) {
       pwd_flags |= SHPAM_LOCK;
-    } else if (0 == strcmp(args[i], "-s")) {
+    } else if (0 == strcmp(args[i], "-S")) {
       pwd_flags |= SHPAM_STATUS;
     } else if (0 == strcmp(args[i], "-t")) {
       pwd_flags |= SHPAM_SESSION;
@@ -292,6 +292,30 @@ int sharetool_passwd(char **args, int arg_cnt)
   shpeer_free(&app_peer);
 
   memset(opass, 0, sizeof(opass));
+
+  if (pwd_flags & SHPAM_STATUS) {
+    err = sharetool_pwd_print(peer, acc_name);
+    if (err) {
+      fprintf(stderr, "%s: error: %s.\n", process_path, sherrstr(err));
+      return (err);
+    }
+    return (0);
+  }
+
+  if (pwd_flags & SHPAM_SESSION) {
+    err = sharetool_pwd_session(peer, &seed);
+    if (err) {
+      fprintf(stderr, "%s: session error: %s.\n", process_path, sherrstr(err));
+      return (err);
+    }
+    return (0);
+  }
+
+  if (pwd_flags & SHPAM_DELETE) {
+  }
+
+  if (pwd_flags & SHPAM_EXPIRE) {
+  }
 
   err = shuser_verify(acc_name);
   if (err && err != SHERR_NOENT) {
@@ -371,29 +395,6 @@ if (err == SHERR_NOENT) {
     return (0);
   }
 
-  if (pwd_flags & SHPAM_STATUS) {
-    err = sharetool_pwd_print(peer, acc_name);
-    if (err) {
-      fprintf(stderr, "%s: error: %s.\n", process_path, sherrstr(err));
-      return (err);
-    }
-    return (0);
-  }
-
-  if (pwd_flags & SHPAM_SESSION) {
-    err = sharetool_pwd_session(peer, &seed);
-    if (err) {
-      fprintf(stderr, "%s: session error: %s.\n", process_path, sherrstr(err));
-      return (err);
-    }
-    return (0);
-  }
-
-  if (pwd_flags & SHPAM_DELETE) {
-  }
-
-  if (pwd_flags & SHPAM_EXPIRE) {
-  }
 
 
   return (0);

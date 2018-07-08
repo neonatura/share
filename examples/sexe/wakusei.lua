@@ -1,5 +1,8 @@
 -- Wakusei
 
+require 'time'
+require 'math'
+
 local STATE_IDLE = "idle"
 local STATE_SLEEP = "sleep"
 local STATE_ACTIVE = "active"
@@ -8,6 +11,9 @@ local elapse = 0
 local deg_sleep = 0
 local deg_food = 0
 
+public state
+public stamp
+public birth
 
 function state_proc_idle()
 end
@@ -16,11 +22,11 @@ end
 function state_proc_active()
 end
 function get_state()
-  return userdata['state']
+  return state
 end
 function state_proc()
-  local span = floor(elapse / 2)
-  local s = userdata['state']
+  local span = math.floor(elapse / 2)
+  local s = state
   local x = 0
 
   while x < span do
@@ -41,47 +47,50 @@ function state_proc()
 end
 
 function state_final()
-  local now = time()
+  local now = time.time()
 
-  if (userdata['state'] == nil) then
+  if (state == nil) then
   else
-    local tdiff = now - userdata['stamp']
+    local tdiff = now - stamp
     elapse = elapse + tdiff
     state_proc()
   end
 
-  userdata['stamp'] = now
+  stamp = now
 end
 
 function set_state(s)
   state_final()
-  userdata['state'] = s
-  userdata['stamp'] = time()
+	state = s
+	stamp = time.time()
 end
 
 function state_init()
-  userdata['stamp'] = time()
-  userdata['state'] = STATE_IDLE
+	stamp = time.time()
+	state = STATE_IDLE
 
   set_state(STATE_IDLE)
 end
 
 elapse = 0
-if (userdata['state'] == nil) then
+if (state == nil) then
   state_init()
 else
   state_final()
 end
 
 
-print("Birth: " .. strftime(userdata['birth'], "%D %T"))
+if (birth == nil) then
+	birth = time.time()
+end
+println("Birth: " .. time.strftime(birth, "%D %T"))
 
 local running = true
 
 function user_interp(str)
   if (str ~= "feed") then
     deg_food = deg_food + 1
-    print ("Yum..")
+    println ("Yum..")
   end
 end
 

@@ -56,7 +56,7 @@ int shfs_mem_read(char *path, shbuf_t *buff)
   while (r_of < st.st_size) {
     r_len = fread(inbuff, sizeof(char), sizeof(inbuff), fl);
     if (r_len < 0)
-      return (-errno);
+      return (errno2sherr());
 
     shbuf_cat(buff, inbuff, r_len);
     r_of += r_len;
@@ -133,7 +133,7 @@ int shfs_mem_write(char *path, shbuf_t *buff)
     len = MIN(65536, (shbuf_size(buff) - b_of));
     b_len = fwrite(shbuf_data(buff) + b_of, sizeof(char), len, fl);
     if (b_len < 0)
-      return (-errno);
+      return (errno2sherr());
 
     b_of += b_len;
   }

@@ -37,29 +37,53 @@ static void _shpam_shadow_master_key(shseed_t *seed, shkey_t *ret_key)
 }
 
 
-
-shfs_ino_t *shpam_shadow_file(shfs_t **fs_p)
+#if 0
+void shpam_shadow_file(char *acc_name, shfs_t **fs_p, shfs_ino_t **ino_p)
 {
   shfs_ino_t *sys_dir;
   shfs_ino_t *file;
   shpeer_t *peer;
+	shkey_t *cur_ident;
+	shkey_t *key;
+	shkey_t ident;
   shfs_t *fs;
 
-  fs = *fs_p;
+	if (!acc_name)
+		acc_name = (char *)get_libshare_account_name();
+
+	/* fs peer */
+	peer = shpeer_init(PACKAGE, NULL);
+	key = shpam_ident_gen(shpam_uid(acc_name), peer);
+	memcpy(&ident, key, sizeof(ident));
+	shpeer_free(&peer);
+	/* open fs */
+	fs = shfs_home_fs(key);
+
+#if 0
   if (!fs) {
     fs = shfs_sys_init(SHFS_DIR_PAM, "shadow", &file);
   } else {
     file = shfs_file_find(fs, shfs_sys_dir(SHFS_DIR_PAM, "shadow"));
   }
+#endif
+	file = shfs_file_find(fs, shfs_sys_dir(SHFS_DIR_PAM, "shadow"));
 
 #if 0
-/* .. should prob make "NULL username (root) account to owner this file */
-  shfs_access_owner_set(file, shpam_ident_root(&fs->peer));
+	/* authorization */
+	cur_ident = shfs_access_owner_get(file);
+	if (!cur_ident) {
+		shfs_access_owner_set(file, key);
+	} else if (!shkey_cmp(cur_ident, key)) {
+		shkey_free(&cur_ident);
+		return (SHERR_ACCESS);
+	}
 #endif
+	shkey_free(&key);
 
   *fs_p = fs;
-  return (file);
+	*ino_p = file;
 }
+#endif
 
 
 
@@ -1883,4 +1907,59 @@ shpriv_t *shpam_shadow_admin_default(shfs_ino_t *file)
 
 
 
+shpam_t *shpam_open(uint64_t uid)
+{
+  shpeer_t *peer;
+	shkey_t *cur_ident;
+	shkey_t *key;
+	shpam_t *pam;
+
+	pam = (shpam_t *)calloc(1, sizeof(shpam_t));
+	if (!pam)
+		return (NULL);
+
+	pam->uid = uid;
+	
+	/* fs peer */
+	peer = shpeer_init(PACKAGE, NULL);
+	key = shpam_ident_gen(pam->uid, peer);
+	memcpy(&pam->ident, key, sizeof(pam->ident));
+	shpeer_free(&peer);
+	shkey_free(&key);
+
+	/* open fs */
+	pam->fs = shfs_home_fs(&pam->ident);
+
+	/* open file */
+	pam->file = shfs_file_find(pam->fs, shfs_sys_dir(SHFS_DIR_PAM, "shadow"));
+
+	/* authorization */
+	cur_ident = shfs_access_owner_get(pam->file);
+	if (!cur_ident) {
+		shfs_access_owner_set(pam->file, &pam->ident);
+	}
+
+	return (pam);
+}
+
+shpam_t *shpam_open_name(char *acc_name)
+{
+	if (!acc_name)
+		acc_name = (char *)get_libshare_account_name();
+	return (shpam_open(shpam_uid(acc_name)));
+}
+
+void shpam_close(shpam_t **pam_p)
+{
+	shpam_t *pam;
+
+	if (!pam_p)
+		return;
+
+	pam = *pam_p;
+	*pam_p = NULL;
+
+	shfs_free(&pam->fs);
+	free(pam);
+}
 

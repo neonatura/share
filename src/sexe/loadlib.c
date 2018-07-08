@@ -28,6 +28,10 @@
 #define LUA_PATH	"LUA_PATH"
 #endif
 
+#if !defined(LUA_SPATH)
+#define LUA_SPATH	"LUA_SPATH"
+#endif
+
 #if !defined(LUA_CPATH)
 #define LUA_CPATH	"LUA_CPATH"
 #endif
@@ -35,6 +39,7 @@
 #define LUA_PATHSUFFIX		"_" LUA_VERSION_MAJOR "_" LUA_VERSION_MINOR
 
 #define LUA_PATHVERSION		LUA_PATH LUA_PATHSUFFIX
+#define LUA_SPATHVERSION		LUA_SPATH LUA_PATHSUFFIX
 #define LUA_CPATHVERSION	LUA_CPATH LUA_PATHSUFFIX
 
 /*
@@ -399,6 +404,14 @@ static int searcher_Lua (lua_State *L) {
   return checkload(L, (luaL_loadfile(L, filename) == LUA_OK), filename);
 }
 
+static int searcher_Sexe (lua_State *L) {
+  const char *filename;
+  const char *name = luaL_checkstring(L, 1);
+  filename = findfile(L, name, "spath", LUA_LSUBSEP);
+  if (filename == NULL) return 1;  /* module not found in this path */
+  return checkload(L, (sexe_loadfile(L, filename, "b") == LUA_OK), filename);
+}
+
 
 static int loadfunc (lua_State *L, const char *filename, const char *modname) {
   const char *funcname;
@@ -488,28 +501,57 @@ static void findloader (lua_State *L, const char *name) {
   }
 }
 
+const luaL_Reg sexesystemlibs[] = {
+  {LUA_TIMELIBNAME, luaopen_time},
+  {LUA_STRLIBNAME, luaopen_string},
+  {LUA_MATHLIBNAME, luaopen_math},
+  {LUA_CRYPTLIBNAME, luaopen_crypt},
+  {LUA_DBLIBNAME, luaopen_debug},
+	{LUA_BITLIBNAME, luaopen_bit32},
+	{LUA_IOLIBNAME, luaopen_io},
+	/* COMPAT 
+  {LUA_OSLIBNAME, luaopen_time},
+	*/
+  {NULL, NULL}
+};
 
+/* todo: Need to include file in .sx compilation / allow .sx inclusion */
 static int ll_require (lua_State *L) {
   const char *name = luaL_checkstring(L, 1);
+	luaL_Reg *lib;
+
   lua_settop(L, 1);  /* _LOADED table will be at index 2 */
   lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
   lua_getfield(L, 2, name);  /* _LOADED[name] */
   if (lua_toboolean(L, -1))  /* is it there? */
     return 1;  /* package is already loaded */
-  /* else must load package */
-  lua_pop(L, 1);  /* remove 'getfield' result */
-  findloader(L, name);
-  lua_pushstring(L, name);  /* pass name as argument to module loader */
-  lua_insert(L, -2);  /* name is 1st argument (before search data) */
-  lua_call(L, 2, 1);  /* run loader to load module */
-  if (!lua_isnil(L, -1))  /* non-nil return? */
-    lua_setfield(L, 2, name);  /* _LOADED[name] = returned value */
-  lua_getfield(L, 2, name);
+
+	/* internal SEXE system library */
+	for (lib = sexesystemlibs; lib->func; lib++) {
+		if (0 == strcasecmp(lib->name, name)) {
+			luaL_requiref(L, lib->name, lib->func, 1);
+			lua_pop(L, 1);  /* remove lib */
+			lua_pushboolean(L, 1);  /* use true as result */
+			break;
+		}
+	}
+	if (!lib->func) {
+		/* else must load package */
+		lua_pop(L, 1);  /* remove 'getfield' result */
+		findloader(L, name);
+		lua_pushstring(L, name);  /* pass name as argument to module loader */
+		lua_insert(L, -2);  /* name is 1st argument (before search data) */
+		lua_call(L, 2, 1);  /* run loader to load module */
+	}
+	if (!lua_isnil(L, -1))  /* non-nil return? */
+		lua_setfield(L, 2, name);  /* _LOADED[name] = returned value */
+	lua_getfield(L, 2, name);
   if (lua_isnil(L, -1)) {   /* module did not set a value? */
     lua_pushboolean(L, 1);  /* use true as result */
     lua_pushvalue(L, -1);  /* extra copy to be returned */
     lua_setfield(L, 2, name);  /* _LOADED[name] = true */
   }
+
   return 1;
 }
 
@@ -566,22 +608,24 @@ static void modinit (lua_State *L, const char *modname) {
 }
 
 
-static int ll_module (lua_State *L) {
-  const char *modname = luaL_checkstring(L, 1);
-  int lastarg = lua_gettop(L);  /* last parameter */
-  luaL_pushmodule(L, modname, 1);  /* get/create module table */
-  /* check whether table already has a _NAME field */
-  lua_getfield(L, -1, "_NAME");
-  if (!lua_isnil(L, -1))  /* is table an initialized module? */
-    lua_pop(L, 1);
-  else {  /* no; initialize it */
-    lua_pop(L, 1);
-    modinit(L, modname);
-  }
-  lua_pushvalue(L, -1);
-  set_env(L);
-  dooptions(L, lastarg);
-  return 1;
+static int ll_module (lua_State *L) 
+{
+	const char *modname = luaL_checkstring(L, 1);
+	int lastarg = lua_gettop(L);  /* last parameter */
+
+	luaL_pushmodule(L, modname, 1);  /* get/create module table */
+	/* check whether table already has a _NAME field */
+	lua_getfield(L, -1, "_NAME");
+	if (!lua_isnil(L, -1))  /* is table an initialized module? */
+		lua_pop(L, 1);
+	else {  /* no; initialize it */
+		lua_pop(L, 1);
+		modinit(L, modname);
+	}
+	lua_pushvalue(L, -1);
+	set_env(L);
+	dooptions(L, lastarg);
+	return 1;
 }
 
 
@@ -657,7 +701,7 @@ static const luaL_Reg ll_funcs[] = {
 
 
 static const lua_CFunction searchers[] =
-  {searcher_preload, searcher_Lua, searcher_C, searcher_Croot, NULL};
+  {searcher_preload, searcher_Sexe, searcher_Lua, searcher_C, searcher_Croot, NULL};
 
 
 LUAMOD_API int luaopen_package (lua_State *L) {
@@ -683,6 +727,8 @@ LUAMOD_API int luaopen_package (lua_State *L) {
   lua_setfield(L, -2, "searchers");  /* put it in field 'searchers' */
   /* set field 'path' */
   setpath(L, "path", LUA_PATHVERSION, LUA_PATH, LUA_PATH_DEFAULT);
+	/* set field 'spath' for sexe search spec */
+  setpath(L, "spath", LUA_SPATHVERSION, LUA_SPATH, LUA_SPATH_DEFAULT);
   /* set field 'cpath' */
   setpath(L, "cpath", LUA_CPATHVERSION, LUA_CPATH, LUA_CPATH_DEFAULT);
   /* store config information */

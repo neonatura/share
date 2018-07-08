@@ -109,7 +109,7 @@ int shfs_list_fnmatch_native(shfs_ino_t *file, char *fspec, shfs_dirent_t **ent_
 
   dir = opendir(dir_path);
   if (!dir) {
-    return (-errno);
+    return (errno2sherr());
 }
 
   while ((ent = readdir(dir))) {
@@ -228,7 +228,7 @@ static int shfs_list_native(shfs_ino_t *file, char *fspec, shfs_list_f cb, void 
 
   dir = opendir(dir_path);
   if (!dir) {
-    return (-errno);
+    return (errno2sherr());
   }
 
   total = 0;

@@ -61,7 +61,7 @@ ssize_t shnet_read(int fd, const void *buf, size_t count)
     /* block for data */
     err = select(fd+1, &read_set, NULL, &exc_set, NULL);
     if (err == -1) 
-      return (-errno);
+      return (errno2sherr());
   } 
 
   /* data available for read. */
@@ -73,7 +73,7 @@ ssize_t shnet_read(int fd, const void *buf, size_t count)
 #endif
       return (SHERR_CONNRESET);
   } else if (r_len < 1) {
-    return (-errno);
+    return (errno2sherr());
   } else {
     /* append to internal buffer */
     shbuf_cat(_sk_table[usk].recv_buff, _read_buff, r_len);

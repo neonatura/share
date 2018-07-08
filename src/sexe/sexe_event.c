@@ -1,5 +1,4 @@
 
-
 /*
  * @copyright
  *
@@ -26,95 +25,106 @@
 
 #include "sexe.h"
 
-
-shmap_t *event_map;
-
-char *sexe_event_init(int e_type, const char *e_name)
+shkey_t *sexe_event_key(char *e_name)
 {
-  static char key_str[256];
-  sexe_event_t *e;
-  shkey_t *key;
-
-  if (!event_map) {
-    event_map = shmap_init();
-  }
-
-  e = (sexe_event_t *)calloc(1, sizeof(sexe_event_t));
-  if (!e)
-    return (SHERR_NOMEM);
-
-  e->event_type = e_type;
-  strncpy(e->mod_name, e_name, sizeof(e->mod_name) - 1);
-  key = shkey_bin(e, sizeof(sexe_event_t));
-  memcpy(&e->reg_key, key, sizeof(shkey_t));
-  shmap_set_ptr(event_map, key, e);
-  strncpy(key_str, shkey_hex(key), sizeof(key_str) - 1);
-  shkey_free(&key);
-
-  return (key_str);
+	/* key does not need to be free'd */
+	return (ashkey_str(e_name));
 }
 
-
-int sexe_event_remove(lua_State *L, int e_type, char *e_name)
+unsigned int sexe_event_next_id(void)
 {
-  sexe_event_t t_event;
-  sexe_event_t *e;
-  shkey_t *key;
-  int err;
-
-  memset(&t_event, 0, sizeof(t_event));
-  t_event.event_type = e_type;
-  strncpy(t_event.mod_name, e_name, sizeof(t_event.mod_name) - 1);
-  key = shkey_bin(&t_event, sizeof(sexe_event_t));
-
-  /* remove event's global callback */
-  lua_pushnil(L); 
-  lua_setglobal(L, shkey_hex(key));
-
-  e = (sexe_event_t *)shmap_get_ptr(event_map, key);
-  if (e) {
-    shmap_unset(event_map, key);
-    free(e);
-  }
-  shkey_free(&key);
-
-  return (0);
+	static int ef_nr;
+	return (++ef_nr);
 }
 
-int sexe_event_handle(lua_State *L, int e_type, shjson_t *json)
+void sexe_event_register(lua_State *L, char *e_name, lua_CFunction f)
 {
-  const shmap_t *h = event_map;
-  shmap_index_t *hi;
-  sexe_event_t *event;
-  char *key;
-  char *val;
-  size_t len;
-  int flag;
+	unsigned int ef_nr = sexe_event_next_id();
+	shkey_t *key = sexe_event_key(e_name);
+	char *ptr = shkey_hex(key);
 
-  for (hi = shmap_first(h); hi; hi = shmap_next(hi)) {
-    shmap_self(hi,(void*) &key, (void*) &val, &len, &flag);
-    if (!(flag & SHMAP_BINARY))
-      continue;
+	/* _EVENT table */
+	lua_getglobal(L, EVENT_ENV);
+	if (lua_isnil(L, -1)) {
+		lua_pop(L, 1);
+		/* _EVENT */
+		lua_createtable(L, 0, 1);
+	}
 
-    event = (sexe_event_t *)val;
-    if (event->event_type != e_type)
-      continue; /* wrong event type */
+	/* _EVENT[<id>] */
+	lua_pushstring(L, ptr);
+	lua_getfield(L, -2, ptr);
+	if (lua_isnil(L, -1)) {
+		lua_pop(L, 1);
+		lua_newtable(L);
+	}
 
-    sexe_event_call(L, shkey_hex(&event->reg_key), e_type, json);
-  }
+	/* event callback function */
+	lua_pushnumber(L, ef_nr);
+	lua_pushcfunction(L, f);
+	lua_settable(L, -3);
+
+	/* set _ENV['_EVENT'][<id>] */
+	lua_settable(L, -3);
+
+	/* set _ENV['_EVENT'] */
+	lua_setglobal(L, EVENT_ENV);
 
 }
 
-
-/**
- * Call a lua pre-stored global Lua function with one argument.
- */
-int sexe_event_call(lua_State *L, const char *f_name, int e_type, shjson_t *json)
+int sexe_event_handle(lua_State *L, char *e_name, shjson_t *json)
 {
+	shkey_t *key = sexe_event_key(e_name);
+	char *e_hex = shkey_hex(key);
+  int t_reg = 0;
+	int err;
+	int ret;
 
-  lua_getglobal(L, f_name); /* push global func ref to stack */
-  lua_pushnumber(L, e_type);
-  if (json)
-    sexe_table_set(L, json);
-  return (lua_pcall(L, json ? 2 : 1, 0, 0)); 
+	lua_getglobal(L, EVENT_ENV);
+	if (lua_isnil(L, -1))
+		return (0); /* error */
+	lua_getfield(L, -1, e_hex);
+	if (lua_isnil(L, -1))
+		return (0); /* error */
+
+	/* iterate through registered functions for event */
+	err = SHERR_NOENT;
+	lua_pushnil(L);
+	while (lua_next(L, -2)) {
+		int t = lua_type(L, -1);
+		if (t == LUA_TFUNCTION) {
+			/* copy function call onto stack  lua_pushvalue(L, 1); */
+			/* 1. user args */
+			if (json)
+				sexe_table_set(L, json);
+			else
+				lua_pushnil(L);
+			/* 2. event name */
+			lua_pushstring(L, e_name);
+			/* exec */
+			if ((ret=lua_pcall(L, 2, 1, 0)) == LUA_OK) {
+				int result = lua_toboolean(L, -1);  /* get result */
+				if (result)
+					err = 0;
+				else if (err != 0)
+					err = SHERR_INVAL;
+				lua_pop(L, 1); /* value */
+			} else {
+				int status = ret;
+
+				err = SHERR_ILSEQ;
+//fprintf(stderr, "DEBUG: lua_pcall !ok: lua_pcall() ret %d\n", ret);
+
+//				luaL_error(L, "error sexe_event_handle method (%s)", "<event>");
+
+				break;
+			}
+		} else {
+			lua_pop(L, 1); /* value */
+		}
+	}
+
+	return (err);
 }
+
+

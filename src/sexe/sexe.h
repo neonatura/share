@@ -37,42 +37,266 @@ extern "C" {
 #endif
 
 #include "share.h"
+#include <stdio.h>
+#include <string.h>
 
 /**
- * @mainpage
+ * @mainpage SEXE Programming Language Reference Manual
  *
- *  <h3>The SEXE programming language reference manual.</h3>
+ *  SEXE is a programming language based on Lua. This libshare project aims to introduce the ability to run compiled SEXE bytecode on local disk, sharefs partition, and on remote machines (i.e. modular deployment).
  *
- *  SEXE is a libshare project which aims to introduce the ability to run compiled bytecode on local disk, sharefs partition, and on remote machines.
- *
- *  All source code for SEXE compiled bytecode is written in the Lua programming language syntax.
-Reference: http://www.lua.org/ (PUC RIO)
+ *  All source code for SEXE compiled bytecode is written in the Lua programming language syntax. (PUC RIO: http://www.lua.org/)
  *
  *  The compiler "sxc", interpreter "sx", and symbol lister "readsexe" progams distributed with libshare will use your current working directory when reading and writing files.
  *
- *
  * <p>
- *  The following is a sub-set of the core SEXE functions provided:
+ * Reserved keywords:
+ *  - \subpage sexe_reserved_public "public"
+
+ * <p>
+ * System Libraries:
+ *  - \subpage sexe_lib_string "String Functions"
+ *  - \subpage sexe_lib_math "Math Functions"
+ *  - \subpage sexe_lib_time "Time Functions"
+ *  - \subpage sexe_lib_io "File I/O"
+ *  - \subpage sexe_lib_crypt "Crypt Functions"
+ *  - \subpage sexe_lib_event "Event Functions"
+ *  - \subpage sexe_lib_debug "Debug Functions"
+ */
+
+/**
+	*  @page sexe_reserved_public The reserved public directive
+	*  The "public" directive is used in order to declare functions or
+	*  variables as persistently accessible. 
  *
- *  - key = shkey(str|num)
- *    Generate a share key from a string or number.
- *
- *  - enc = shencode(str, key)
- *    Encode a text string based off a share key.
- *
- *  - str = shdecode(enc, key)
- *    Decode a text string based off a share key.
- *
- *  - t = time()
- *    Obtain a floating point respresentation of the current time.
- *
- *  - ctime(t)
- *    Obtain a generic string describing the current time.</dl>
- *
- *  - utime(t)
- *    Convert the floating-point representation into unix time-stamp (epoch seconds).
- *
- *  @defgroup sexe A programming language.
+	*  When a variable is declared as public a global variable will be created
+	*  (with the same name) that is filled with the previous value assigned to
+	*  it from when the script was ran previous. If the value has not been
+	*  previously assigned value then it will be "nil". When the script returns 
+	*  (is done running) the value will automatically be saved.
+	* 
+	*  Public variables are saved in the "userdata" global environment area. 
+	*/
+
+/**
+	*  @page sexe_lib_string The standard sexe time library.
+	*
+	*  Syntax:
+	*  lib "string"
+	*
+	*  SEXE String Library Functions:
+	*
+	*  - string.byte(_str[, _of[, _end]])
+	*    Return a byte value of from a string.
+	*  - string.char(_num[, _num[, ..]])
+	*    Convert a series of numbers into a character string.
+	*  - string.find(_str, _sub)
+	*    Returns the start and end offset or nil.
+	*
+	*/
+
+/**
+	*  @page sexe_lib_time The standard sexe time library.
+	*  
+	*  Syntax:
+	*  lib "time"
+	*
+	*  SEXE Time Library Functions:
+	*
+	*  * time.time()
+  *
+	*    Obtain a decimal-point representation of the current time.
+  *
+  *    <small><i>local t = time()</i></small>
+	*
+	*  * time.ctime(<time>)
+	*
+	*    Obtain a string displaying the specified <time>.
+	*
+	*    <small><i>print(time.ctime(time.time())</i></small>
+	*
+	*  * (int) time.utime(<time>)
+	*
+	*    Obtain a unix time-stamp from the specified <time>.
+	*
+	*    local unixtime = time.utime(time.time())
+	*
+	*  * time.strftime(<time>, <format>)
+  *
+	*    Generate a string using a posix (strftime) format.
+	*
+	*  * time.clock()
+  *
+	*    Return the current clock cycle as a fraction of a second
+	*
+	*  * time.date()
+	*
+	*    Retrieve the current time as an object. Format is: { year=%Y, month=%m, day=%d, hour=%H, min=%M, sec=%S, wday=%w+1, yday=%j, isdst=? }
+	*
+	*  * time.difftime(_time1, _time2)
+	*
+	*    Return the difference in seconds between _time1 and _time2. 
+	*/
+/**
+	*  @page sexe_lib_io The standard sexe I/O library.
+	*  
+	*  Syntax:
+	*  require 'io'
+	*
+	*
+ *  The I/O library provides two different styles for file manipulation. The first one uses implicit file descriptors, that is, there are operations to set a default input file and a default output file, and all input/output operations are over those default files. The second style uses explicit file descriptors.
+ * 
+ * When using implicit file descriptors, all operations are supplied by table io. When using explicit file descriptors, the operation io.open returns a file descriptor and then all operations are supplied as methods by the file descriptor.
+ * 
+ * The table io also provides three predefined file descriptors with their usual meanings from C: io.stdin, io.stdout, and io.stderr.
+ * 
+ * A file descriptor is a userdata containing the file stream (FILE*), with a distinctive metatable created by the I/O library.
+ * 
+ * Unless otherwise stated, all I/O functions return nil on failure (plus an error message as a second result) and some value different from nil on success.
+ * 
+ *     file = io.open (filename [, mode])
+ * 
+ * This function opens a file, in the mode specified in the string mode. It returns a new file descriptor, or, in case of errors, nil plus an error message.
+ * 
+ * The mode string can be any of the following:
+ * 
+ *     "r" read mode (the default);
+ *     "w" write mode;
+ *     "a" append mode;
+ *     "r+" update mode, all previous data is preserved;
+ *     "w+" update mode, all previous data is erased;
+ *     "a+" append update mode, previous data is preserved, writing is only allowed at the end of file. 
+ * 
+ * The mode string may also have a b at the end, which is needed in some systems to open the file in binary mode. This string is exactly what is used in the standard C function fopen.
+ * 
+ *     io.close ([file])
+ * 
+ * Equivalent to file:close. Without a file, closes the default output file.
+ * 
+ *     io.flush ()
+ * 
+ * Equivalent to file:flush over the default output file.
+ * 
+ *     io.input ([file])
+ * 
+ * When called with a file name, it opens the named file (in text mode), and uses it as the default input descriptor. When called with a file descriptor, it simply sets that file descriptor as the default input file. When called without parameters, it returns the current default input file descriptor.
+ * 
+ * In case of errors this function raises the error, instead of returning an error code.
+ * 
+ *     io.lines ([filename])
+ * 
+ * Opens the given file name in read mode and returns an iterator function that, each time it is called, returns a new line from the file. Therefore, the construction
+ * 
+ *     for line in io.lines(filename) do ... end
+ * 
+ * will iterate over all lines of the file. When the iterator function detects the end of file, it closes the file and returns nil (to finish the loop).
+ * 
+ * The call io.lines() (without a file name) is equivalent to io.input():lines(), that is, it iterates over the lines of the default input file.
+ * 
+ * io.output ([file])
+ * 
+ * Similar to io.input, but operates over the default output file.
+ * 
+ *     io.read (format1, ...)
+ * 
+ * Equivalent to io.input():read.
+ * 
+ *     io.tmpfile ()
+ * 
+ * Returns a descriptor for a temporary file. This file is open in update mode and it is automatically removed when the program ends.
+ * 
+ *     io.type (obj)
+ * 
+ * Checks whether obj is a valid file descriptor. Returns the string "file" if obj is an open file descriptor, "closed file" if obj is a closed file descriptor, and nil if obj is not a file descriptor.
+ * 
+ *     io.write (value1, ...)
+ * 
+ * Equivalent to io.output():write.
+ * 
+ *     f:close ()
+ * 
+ * Closes file f.
+ * 
+ *     f:flush ()
+ * 
+ * Saves any written data to file f.
+ * 
+ *     f:lines ()
+ * 
+ * Returns an iterator function that, each time it is called, returns a new line from file f. Therefore, the construction
+ * 
+ *     for line in f:lines() do ... end
+ * 
+ * will iterate over all lines of file f. (Unlike io.lines, this function does not close the file when the loop ends.)
+ * 
+ *     f:read (format1, ...)
+ * 
+ * Reads the file f, according to the given formats, which specify what to read. For each format, the function returns a string (or a number) with the characters read, or nil if it cannot read data with the specified format. When called without formats, it uses a default format that reads the entire next line (see below).
+ * 
+ * The available formats are
+ * 
+ *     "*n" reads a number; this is the only format that returns a number instead of a string.
+ *     "*a" reads the whole file, starting at the current position. On end of file, it returns the empty string.
+ *     "*l" reads the next line (skipping the end of line), returning nil on end of file. This is the default format.
+ *     number reads a string with up to that number of characters, returning nil on end of file. If number is zero, it reads nothing and returns an empty string, or nil on end of file. 
+ * 
+ *     f:seek ([whence] [, offset])
+ * 
+ * Sets and returns the index position for file f, measured from the beginning of the file, to the position given by offset plus a base specified by the string whence, as follows:
+ * 
+ *     "set" base is position 0 (beginning of the file);
+ *     "cur" base is current position;
+ *     "end" base is end of the file; 
+ * 
+ * In case of success, function seek returns the final file position, measured in bytes from the beginning of the file. If this function fails, it returns nil, plus a string describing the error.
+ * 
+ * The default value for whence is "cur", and for offset is 0. Therefore, the call file:seek() returns the current file position, without changing it; the call file:seek("set") sets the position to the beginning of the file (and returns 0); and the call file:seek("end") sets the position to the end of the file, and returns its size.
+ * 
+ *     f:write (value1, ...)
+ * 
+ * Writes the value of each of its arguments to file f. The arguments must be strings or numbers. To write other values, use tostring or string.format before write. 
+	*/
+
+/**
+	*  @page sexe_lib_crypt The standard sexe crypt library.
+	*  
+	*  Syntax:
+	*  lib "crypt"
+	*
+	*  SEXE Crypt Library Functions:
+	*
+	*  * crypt.key(<string>|<number>)
+  *
+	*    Obtain a text-formatted key for encrypting or decrypting.
+  *
+  *    <small><i>local key = crypt.key(math.rand())</i></small>
+	*
+	*  * crypt.encrypt(<string>, <key>)
+	*
+	*    Encrypt a string using the provided key.
+	*  
+	*    <small><i>local enc_str = crypt.encrypt("hello", crypt.key("key"))</i></small>
+	*
+	*  * crypt.decrypt(<string>, <key>)
+	*
+	*    Decrypt an encrypted segment.
+	*
+	*    <small></i>local str = crypt.decrypt(crypt.encrypt("hellow", crypt.key("key")))</i></small>
+	*
+	*  * crypt.crc(<string>)
+	*
+	*    Create a checksum number representing the string.
+	*
+	*    <small><i>local crc = crypt.crc("hellow")</i></small>
+	*
+	*  * crypt.sha2(<string>)
+	*
+	*    Create a SHA-2 (256-byte) hash digest of the string.
+	*
+	*    <small><i>local sha = crypt.sha2("hellow")</i></small>
+	*/
+ 
+/**  @defgroup sexe SEXE Programming Language
  *  @{
  */
 
@@ -87,7 +311,6 @@ Reference: http://www.lua.org/ (PUC RIO)
  *  @{
  */
 #include "sexe_lua.h"
-typedef lua_State sexe_t;
 #ifdef SEXELIB
 #include "lobject.h"
 #include "llimits.h"
@@ -113,26 +336,12 @@ typedef lua_State sexe_t;
 #include "lstate.h"
 #include "sexe_bin.h"
 #include "sexe_compile.h"
-#include "sexe_func.h"
+#include "sexe_public.h"
 #include "sexe_test.h"
 #include "sexe_event.h"
 #include "sys/sexe_sys.h"
 #else
 typedef uint32_t Instruction;
-int sexe_execv(char *path, char **argv);
-int sexe_execve(char *path, char **argv, char *const envp[]);
-int sexe_execm(shbuf_t *buff, shjson_t *arg);
-
-int sexe_exec_popen(shbuf_t *buff, shjson_t *arg, sexe_t **mod_p);
-void sexe_exec_pclose(sexe_t *S);
-int sexe_exec_pevent(sexe_t *S, int e_type, shjson_t *arg);
-int sexe_exec_pset(sexe_t *S, char *name, shjson_t *arg);
-int sexe_exec_pget(sexe_t *S, char *name, shjson_t **arg_p);
-int sexe_exec_pgetdef(sexe_t *S, char *name, shjson_t **arg_p);
-
-int sexe_exec_prun(sexe_t *S);
-
-int sexe_exec_pcall(sexe_t *S, char *func, shjson_t *json);
 
 void sexe_table_set(lua_State *L, shjson_t *json);
 
@@ -140,7 +349,71 @@ shjson_t *sexe_table_get(lua_State *L);
 
 shjson_t *sexe_table_getdef(lua_State *L);
 
+
+
 #endif
+
+/**
+ * Run an entire SEXE process from file.
+ */
+int sexe_exec(char *path, char **argv);
+
+/**
+ * Run an entire SEXE process from memory.
+ */
+int sexe_execm(shbuf_t *buff, char **argv);
+
+
+/** 
+ * Create a SEXE instance handle from a file.
+ */
+int sexe_popen_file(char *path, sexe_t **mod_p);
+
+/** 
+ * Create a SEXE instance handle from memory.
+ */
+int sexe_popen(shbuf_t *buff, sexe_t **mod_p);
+
+/**
+ * Run the main method from a pre-loaded SEXE process.
+ *
+ * @param S The SEXE process handle.
+ * @param argc The number of arguments being passed.
+ * @param argv An array of "main" arguments to pass to the process.
+ * @note The first argument should be the path name of the executable.
+ */
+int sexe_prun(sexe_t *S, int argc, char **argv);
+
+/**
+ * Call a SEXE function.
+ *
+ * @param S The SEXE process handle.
+ * @param func The global name of the function.
+ * @param call A JSON object which optionally contains a "argument" array, which is passed into the function, and a "void" boolean which indicates that the function does not return a value.
+ * @returns A zero (0) on success or a share library error code on failure.
+ */
+int sexe_pcall_json(sexe_t *S, char *func, shjson_t *call);
+
+/** Close a SEXE process handle. */
+void sexe_pclose(sexe_t *S);
+
+
+int sexe_pgetdef(sexe_t *S, char *name, shjson_t **arg_p);
+
+int sexe_pget(sexe_t *S, char *name, shjson_t **arg_p);
+
+int sexe_pset(sexe_t *S, char *name, shjson_t *arg);
+
+int sexe_pevent(sexe_t *S, char *event_name, shjson_t *data);
+
+
+
+
+int sexe_compile_pmain(sexe_t *L);
+
+sexe_t *sexe_init(void);
+
+int sexe_compile_writer(lua_State* L, const void* p, size_t size, void* u);
 
 
 /* v1 instruction operations. (tx_vm_t.vm_op) */
@@ -205,7 +478,8 @@ shjson_t *sexe_table_getdef(lua_State *L);
 #define SESTACK_LOCALVAR_DEBUG 11
 #define SESTACK_INSTRUCTION_DEBUG 12
 
-
+/* a "un-set" stack mode. */
+#define SESTACK_MASK 250
 
 
 #if 0
@@ -297,24 +571,28 @@ typedef struct sexe_debug_lvar_t sexe_debug_lvar_t;
 #define SEPARAMF_VARARG (1 << 0)
 struct sexe_func_t
 {
-
   uint32_t func_source; /* checksum of 'source' name */
 
   uint32_t func_line;
   uint32_t func_lline;
 
+  uint32_t stack_max;
+
   uint8_t param_max;
   uint8_t param_flag;
-  uint8_t stack_max;
-  uint8_t _reserved_;
 
+	uint8_t __reserved_0__;
+	uint8_t __reserved_1__;
 };
 typedef struct sexe_func_t sexe_func_t;
 
 struct sexe_stack_t 
 {
   uint8_t type; /* function, param, local, or constant */
-  uint8_t size; /* number of members */
+	uint8_t __reserved_0__;
+	uint8_t __reserved_1__;
+	uint8_t __reserved_2__;
+  uint32_t size; /* number of members */
   union {
     Instruction instr[0];
     unsigned char lit[0];
@@ -494,6 +772,13 @@ const char *sexe_checkstring(sexe_t *S, int narg);
 lua_Number sexe_checknumber(sexe_t *S, int narg);
 
 char ac_sexe(void);
+
+/**
+ * Create a new C callback for a particular event.
+ * @note The C callback must return a single boolean on success/failure.
+ */
+void sexe_event_register(lua_State *L, char *e_name, lua_CFunction f);
+
 
 /**
  *  @}

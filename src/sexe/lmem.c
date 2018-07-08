@@ -75,6 +75,7 @@ void *luaM_realloc_ (lua_State *L, void *block, size_t osize, size_t nsize) {
   if (nsize > realosize && g->gcrunning)
     luaC_fullgc(L, 1);  /* force a GC whenever possible */
 #endif
+
   newblock = (*g->frealloc)(g->ud, block, osize, nsize);
   if (newblock == NULL && nsize > 0) {
     api_check(L, nsize > realosize);
@@ -85,6 +86,10 @@ void *luaM_realloc_ (lua_State *L, void *block, size_t osize, size_t nsize) {
     if (newblock == NULL)
       luaD_throw(L, LUA_ERRMEM);
   }
+	if (newblock && nsize > osize) {
+		memset(newblock + osize, '\000', nsize - osize); 
+	}
+
   lua_assert((nsize == 0) == (newblock == NULL));
   g->GCdebt = (g->GCdebt + nsize) - realosize;
 #if defined(TRACEMEM)

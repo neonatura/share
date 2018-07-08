@@ -32,7 +32,7 @@ ssize_t shnet_write(int fd, const void *buf, size_t count)
 
   w_len = write(fd, buf, count);
   if (w_len < 0) {
-    return (-errno);
+    return (errno2sherr());
   }
   
   return (w_len);

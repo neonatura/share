@@ -111,7 +111,7 @@ int shbuf_growmap(shbuf_t *buf, size_t data_len)
         w_len = write(buf->fd, data, block_size);
         if (w_len == -1) {
           free(data);
-          return (-errno); /* SHERR_NOSPC */
+          return (errno2sherr()); /* SHERR_NOSPC */
         }
 
         of += w_len;
@@ -535,7 +535,7 @@ shbuf_t *shbuf_file(char *path)
     char logmsg[4096];
 
     sprintf(logmsg, "shbuf_file: open '%s'", path);
-    PRINT_ERROR(-errno, logmsg);
+    PRINT_ERROR(errno2sherr(), logmsg);
     return (NULL);
   }
 

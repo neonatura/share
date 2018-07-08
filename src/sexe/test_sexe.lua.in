@@ -16,28 +16,65 @@
 --  You should have received a copy of the GNU General Public License
 --  along with The Share Library.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'crypt'
+
+event TestEvent
+
+-- event test
+local event_success = 0
+function TestTrigger(arg, name)
+	if (arg ~= nil) then
+		if (name == "TestEvent") then
+			event_success = 1
+		end
+	end
+end
+os.register("TestEvent", TestTrigger)
+
+function test_event()
+	TestEvent( { } )
+
+	-- success
+	if (event_success == 1) then
+    print (".")
+		return 0
+	end
+
+	print ("F")
+	return 1
+end
+
 function test_case_str(a, b)
   if (a == b) then
     print (".")
-    return 1
+    return 0
   end
 
   print ("F")
-  return 0
+  return 1 
 end
 
 function test_shencode()
   local test_str = "test text"
-  local key = shkey("test key");
-  local enc_str = shencode(test_str, key);
-  return (test_case_str(shdecode(enc_str, key), test_str))
+  local key = crypt.key("test key");
+  local enc_str = crypt.encrypt(test_str, key);
+  return (test_case_str(crypt.decrypt(enc_str, key), test_str))
 end
 
 
 function test_libshare()
   local err = 0;
-  err = err + test_shencode()
-  print('\n\nOK\n')
+
+	-- test cases
+	err = err + test_shencode()
+	err = err + test_event()
+
+	if (err == 0) then
+		print('\n\nOK\n')
+	else
+		print('\n\nFAIL\n')
+	end
+
   return err
 end
 

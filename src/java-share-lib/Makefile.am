@@ -1,150 +1,20 @@
 AUTOMAKE_OPTIONS = foreign
 JAVAC_OPT=-d $(top_builddir)/src/java-share-lib
-AM_GCJFLAGS = -Wno-all -fjni
 
-INCLUDES = -I$(top_srcdir)/src/share-lib \
+AM_CPPFLAGS = -I$(top_srcdir)/src/share-lib \
 	-I$(top_srcdir)/src/share-lib/fs \
 	-I$(top_srcdir)/src/share-lib/net \
 	-I$(top_srcdir)/src/share-lib/mem \
 	-I$(top_srcdir)/src/share-lib/sys
 
 if LIBSHARE_JAVA
+
 BUILT_SOURCES = libshare.jar
+TESTS = test_libshare_java.sh
 libshare_java_DATA = libshare.jar 
 libshare_javadir = $(libdir)
 
-noinst_PROGRAMS = test_libshare_java
-test_libshare_java_SOURCES = libshare.jar test_libshare_java.java
-test_libshare_java_LDFLAGS = --main=test_libshare_java -fjni
-
-TESTS = test_libshare_java.sh
-
-shadmin_classes = \
-	jshare/action/SPeerAction.class \
-	jshare/action/SGeoAction.class \
-	jshare/action/SAccountAction.class \
-	jshare/option/SOption.class \
-	jshare/style/SToolTip.class \
-	jshare/style/SFont.class \
-	jshare/action/SAction.class \
-	jshare/action/SMainAction.class \
-	jshare/action/SExitAction.class \
-	jshare/action/SViewLayerAction.class \
-	jshare/action/SHelpAction.class \
-	jshare/gui/SButton.class \
-	jshare/gui/SList.class \
-	jshare/gui/SListItem.class \
-	jshare/gui/SListModel.class \
-	jshare/gui/SListRender.class \
-	jshare/gui/SDashedBorder.class \
-	jshare/gui/SDialog.class \
-	jshare/gui/SFrame.class \
-	jshare/gui/SMainFrame.class \
-	jshare/gui/SFormattedTextField.class \
-	jshare/gui/SHelpButton.class \
-	jshare/gui/SLabel.class \
-	jshare/gui/SLargeButton.class \
-	jshare/gui/SPanel.class \
-	jshare/gui/SFramePanel.class \
-	jshare/gui/SFramePanelListener.class \
-	jshare/gui/STextField.class \
-	jshare/gui/STextPane.class \
-	jshare/gui/SDesktopPane.class \
-	jshare/gui/SScrollPane.class \
-	jshare/gui/menu/SMenu.class \
-	jshare/gui/menu/SPeerMenu.class \
-	jshare/gui/menu/SIndexMenu.class \
-	jshare/gui/panel/SMenuPanel.class \
-	jshare/gui/panel/SActionPanel.class \
-	jshare/gui/panel/SLayeredPane.class \
-	jshare/param/SFileMap.class \
-	jshare/param/SKeyTable.class \
-	jshare/param/SParam.class \
-	jshare/param/SParamKey.class \
-	jshare/param/SParamLock.class \
-	jshare/param/SParamTable.class \
-	jshare/param/SPerm.class \
-	jshare/param/SPermTable.class \
-	jshare/param/SLocation.class \
-	jshare/param/SGeo.class \
-	jshare/param/SGeoTable.class \
-	jshare/net/SClient.class \
-	jshare/net/SLocalClient.class \
-	jshare/net/SNetClient.class \
-	jshare/net/SHttpClient.class \
-	jshare/net/SStream.class \
-	jshare/net/SByteStream.class \
-	jshare/engine/SEngine.class \
-	jshare/engine/SLocalEngine.class \
-	jshare/engine/SSystemEngine.class \
-	jshare/engine/SNetEngine.class \
-	jshare/engine/SSharenetEngine.class \
-	jshare/engine/SSharecoinEngine.class \
-	jsl_desktop.class
-
-shadmin_sources = \
-	$(srcdir)/jshare/action/SPeerAction.java \
-	$(srcdir)/jshare/action/SGeoAction.java \
-	$(srcdir)/jshare/action/SAccountAction.java \
-	$(srcdir)/jshare/option/SOption.java \
-	$(srcdir)/jshare/style/SToolTip.java \
-	$(srcdir)/jshare/style/SFont.java \
-	$(srcdir)/jshare/action/SAction.java \
-	$(srcdir)/jshare/action/SMainAction.java \
-	$(srcdir)/jshare/action/SExitAction.java \
-	$(srcdir)/jshare/action/SViewLayerAction.java \
-	$(srcdir)/jshare/action/SHelpAction.java \
-	$(srcdir)/jshare/gui/SButton.java \
-	$(srcdir)/jshare/gui/SList.java \
-	$(srcdir)/jshare/gui/SListItem.java \
-	$(srcdir)/jshare/gui/SListModel.java \
-	$(srcdir)/jshare/gui/SListRender.java \
-	$(srcdir)/jshare/gui/SDashedBorder.java \
-	$(srcdir)/jshare/gui/SDialog.java \
-	$(srcdir)/jshare/gui/SFrame.java \
-	$(srcdir)/jshare/gui/SMainFrame.java \
-	$(srcdir)/jshare/gui/SFormattedTextField.java \
-	$(srcdir)/jshare/gui/SHelpButton.java \
-	$(srcdir)/jshare/gui/SLabel.java \
-	$(srcdir)/jshare/gui/SLargeButton.java \
-	$(srcdir)/jshare/gui/SPanel.java \
-	$(srcdir)/jshare/gui/SFramePanel.java \
-	$(srcdir)/jshare/gui/SFramePanelListener.java \
-	$(srcdir)/jshare/gui/STextField.java \
-	$(srcdir)/jshare/gui/STextPane.java \
-	$(srcdir)/jshare/gui/SDesktopPane.java \
-	$(srcdir)/jshare/gui/SScrollPane.java \
-	$(srcdir)/jshare/gui/menu/SMenu.java \
-	$(srcdir)/jshare/gui/menu/SPeerMenu.java \
-	$(srcdir)/jshare/gui/menu/SIndexMenu.java \
-	$(srcdir)/jshare/gui/panel/SMenuPanel.java \
-	$(srcdir)/jshare/gui/panel/SActionPanel.java \
-	$(srcdir)/jshare/gui/panel/SLayeredPane.java \
-	$(srcdir)/jshare/param/SFileMap.java \
-	$(srcdir)/jshare/param/SKeyTable.java \
-	$(srcdir)/jshare/param/SParam.java \
-	$(srcdir)/jshare/param/SParamKey.java \
-	$(srcdir)/jshare/param/SParamLock.java \
-	$(srcdir)/jshare/param/SParamTable.java \
-	$(srcdir)/jshare/param/SPerm.java \
-	$(srcdir)/jshare/param/SPermTable.java \
-	$(srcdir)/jshare/param/SLocation.java \
-	$(srcdir)/jshare/param/SGeo.java \
-	$(srcdir)/jshare/param/SGeoTable.java \
-	$(srcdir)/jshare/net/SStream.java \
-	$(srcdir)/jshare/net/SByteStream.java \
-	$(srcdir)/jshare/net/SClient.java \
-	$(srcdir)/jshare/net/SLocalClient.java \
-	$(srcdir)/jshare/net/SNetClient.java \
-	$(srcdir)/jshare/net/SHttpClient.java \
-	$(srcdir)/jshare/engine/SEngine.java \
-	$(srcdir)/jshare/engine/SLocalEngine.java \
-	$(srcdir)/jshare/engine/SSystemEngine.java \
-	$(srcdir)/jshare/engine/SNetEngine.java \
-	$(srcdir)/jshare/engine/SSharenetEngine.java \
-	$(srcdir)/jshare/engine/SSharecoinEngine.java \
-	$(srcdir)/jsl_desktop.java
-
+# not used
 xz_sources = \
 	$(srcdir)/org/tukaani/xz/LZMA2Decoder.java \
 	$(srcdir)/org/tukaani/xz/ARMOptions.java \
@@ -343,12 +213,6 @@ xz_classes = \
 	org/tukaani/xz/XZIOException.class \
 	org/tukaani/xz/XZOutputStream.class
 
-# "java share lib" utility program - in development
-noinst_PROGRAMS += shadmin
-#bin_PROGRAMS = shadmin
-shadmin_SOURCES = libshare.jar $(shadmin_classes) jsl.java
-shadmin_LDFLAGS = --main=jsl -fjni
-endif
 
 javasources = \
 	$(top_srcdir)/src/share-lib/java/share_java.java \
@@ -459,73 +323,7 @@ libshare.jar: libshare.so
 	$(JAVAC) $(JAVAC_OPT) $(javasources) $(api_sources) test_libshare_java.java
 	$(JAR) cf libshare.jar $(javaclasses) $(api_classes)
 
-
-.stamp: $(shadmin_sources)
-	$(JAVAC) -d . $(shadmin_sources)
-
-
-jshare/action/SPeerAction.class: .stamp
-jshare/action/SGeoAction.class: .stamp
-jshare/action/SAccountAction.class: .stamp
-jshare/option/SOption.class: .stamp
-jshare/style/SToolTip.class: .stamp
-jshare/style/SFont.class: .stamp
-jshare/action/SAction.class: .stamp
-jshare/action/SMainAction.class: .stamp
-jshare/action/SExitAction.class: .stamp
-jshare/action/SViewLayerAction.class: .stamp
-jshare/action/SHelpAction.class: .stamp
-jshare/gui/SButton.class: .stamp
-jshare/gui/SList.class: .stamp
-jshare/gui/SListItem.class: .stamp
-jshare/gui/SListModel.class: .stamp
-jshare/gui/SListRender.class: .stamp
-jshare/gui/SDashedBorder.class: .stamp
-jshare/gui/SDialog.class: .stamp
-jshare/gui/SFrame.class: .stamp
-jshare/gui/SMainFrame.class: .stamp
-jshare/gui/SFormattedTextField.class: .stamp
-jshare/gui/SHelpButton.class: .stamp
-jshare/gui/SLabel.class: .stamp
-jshare/gui/SLargeButton.class: .stamp
-jshare/gui/SPanel.class: .stamp
-jshare/gui/SFramePanel.class: .stamp
-jshare/gui/SFramePanelListener.class: .stamp
-jshare/gui/SScrollPane.class: .stamp
-jshare/gui/STextField.class: .stamp
-jshare/gui/STextPane.class: .stamp
-jshare/gui/SDesktopPane.class: .stamp
-jshare/gui/menu/SMenu.class: .stamp
-jshare/gui/menu/SPeerMenu.class: .stamp
-jshare/gui/menu/SIndexMenu.class: .stamp
-jshare/gui/panel/SMenuPanel.class: .stamp
-jshare/gui/panel/SActionPanel.class: .stamp
-jshare/gui/panel/SLayeredPane.class: .stamp
-jshare/net/SStream.class: .stamp
-jshare/net/SByteStream.class: .stamp
-jshare/net/SClient.class: .stamp
-jshare/net/SLocalClient.class: .stamp
-jshare/net/SNetClient.class: .stamp
-jshare/net/SHttpClient.class: .stamp
-jshare/engine/SEngine.class: .stamp
-jshare/engine/SLocalEngine.class: .stamp
-jshare/engine/SSystemEngine.class: .stamp
-jshare/engine/SNetEngine.class: .stamp
-jshare/engine/SSharenetEngine.class: .stamp
-jshare/engine/SSharecoinEngine.class: .stamp
-jshare/param/SFileMap.java: .stamp
-jshare/param/SKeyTable.java: .stamp
-jshare/param/SParam.java: .stamp
-jshare/param/SParamKey.java: .stamp
-jshare/param/SParamLock.java: .stamp
-jshare/param/SParamTable.java: .stamp
-jshare/param/SPerm.java: .stamp
-jshare/param/SPermTable.java: .stamp
-jshare/param/SLocation.java: .stamp
-jshare/param/SGeo.java: .stamp
-jshare/param/SGeoTable.java: .stamp
-jsl_desktop.class: .stamp
+endif
 
 clean-local:
 	rm -f net/sharelib/*.class net/sharelib/*/*.class libshare.jar libshare_java.so *.class .stamp $(xz_classes)
-

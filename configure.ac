@@ -1,10 +1,10 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.63])
-AC_INIT(libshare, 3.1, support@neo-natura.com)
+AC_PREREQ([2.69])
+AC_INIT(libshare, 3.2)
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE(libshare, 3.1) 
+AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR([src/share-lib])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_HEADERS([src/share-lib/test_libshare.c])
@@ -21,9 +21,9 @@ AM_CONDITIONAL([KMOD_DIR], [test -f /lib/modules/`uname -r`/build])
 
 LT_INIT
 
-version_patch=1
+version_patch=2
 AC_SUBST(version_patch)
-version_info=3:1:0
+version_info=3:2:0
 AC_SUBST(version_info)
 
 # docs
@@ -36,9 +36,6 @@ AC_CONFIG_FILES([src/java-share-lib/test_libshare_java.java])
 AC_CONFIG_FILES([src/java-share-lib/jsl.java])
 AC_CONFIG_FILES([src/php-share-lib/test_libshare_php.php])
 AC_CONFIG_FILES([src/sexe/test_sexe.lua])
-AC_CONFIG_FILES([src/sexe/test_event.lua])
-AC_CONFIG_FILES([src/sexe/diff_match_patch.lua])
-AC_CONFIG_FILES([src/sexe/diff_match_patch_test.lua])
 # php
 AC_CONFIG_FILES([src/php-share-lib/class_share.php])
 AC_CONFIG_FILES([src/php-share-lib/class_share_fs.php])
@@ -50,8 +47,6 @@ AC_CONFIG_FILES([src/java-share-lib/test_libshare_java.sh], [chmod a+rx src/java
 AC_CONFIG_FILES([src/php-share-lib/test_libshare_php.sh], [chmod a+rx src/php-share-lib/test_libshare_php.sh])
 AC_CONFIG_FILES([src/php-share-lib/test_libshare_fs.sh], [chmod a+rx src/php-share-lib/test_libshare_fs.sh])
 AC_CONFIG_FILES([src/sexe/test_sexe.sh], [chmod a+rx src/sexe/test_sexe.sh])
-AC_CONFIG_FILES([src/sexe/test_event.sh], [chmod a+rx src/sexe/test_event.sh])
-AC_CONFIG_FILES([src/sexe/test_diff.sh], [chmod a+rx src/sexe/test_diff.sh])
 AC_CONFIG_FILES([release.sh], [chmod a+rwx release.sh])
 
 AC_CONFIG_FILES([module/2.6.32/shnet/Makefile])
@@ -218,10 +213,10 @@ AM_CONDITIONAL([LINUX], [test x$opsys = xlinux])
 AM_CONDITIONAL([WINDOWS], [test x$opsys = xwin])
 AM_CONDITIONAL([I386], [test x$arch = xi386])
 AM_CONDITIONAL([X86_64], [test x$arch = xx86_64])
+AM_CONDITIONAL([ARM], [test x$arch = xarm])
 AM_CONDITIONAL([SUNOS4], [test x$opsys = xsunos4])
 AM_CONDITIONAL([SVR4], [test x$opsys = xsvr4])
 AM_CONDITIONAL([FREEBSD], [test x$opsys = xfreebsd])
-
 
 # Checks for programs.
 AC_PROG_CC
@@ -385,6 +380,13 @@ AC_CHECK_DECL([_PATH_DEVNULL],,AC_DEFINE_UNQUOTED([_PATH_DEVNULL], "/dev/null", 
 ])
 
 
+AC_CHECK_PROGS([JAVA], [java])
+AM_CONDITIONAL([HAVE_JAVA], [test -n "$JAVA"])
+AC_CHECK_PROGS([JAR], [jar])
+AM_CONDITIONAL([HAVE_JAR], [test -n "$JAR"])
+AC_CHECK_PROGS([JAVAC], [javac])
+
+
 AC_ARG_ENABLE([shared_api],
   AS_HELP_STRING([--disable-shared-api], [Disable the shared web API.]))
 AM_CONDITIONAL(SHARED_API_SERVICE, [test "x$enable_shared_api" != "xno"])
@@ -404,10 +406,11 @@ AS_IF([test "x$enable_php" = "xyes"], [AC_CHECK_HEADER([zend.h],
 AC_ARG_ENABLE([java],
   AS_HELP_STRING([--enable-java], [Enable java bootstrap compile.]))
 AM_CONDITIONAL(LIBSHARE_JAVA, [test "x$enable_java" = "xyes"])
-AS_IF([test "x$enable_java" = "xyes"], [AC_CHECK_HEADER([jni.h],
-    AC_MSG_RESULT([JAVA bootstrap compile enabled])
-    AC_DEFINE([HAVE_JNI_H],1,[Enable java native interface.]),
-    AC_MSG_FAILURE([Install the java development package.\n (ubuntu) apt-get install default-jdk; apt-get install gcj-jdk\n (centos) yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel java-1.5.0-gcj libgcj libgcj-devel]))])
+AS_IF([test "x$enable_java" = "xyes"], [
+	if test -z "$JAVAC"; then
+		AC_MSG_FAILURE([Install the java development package.  UBUNTU apt-get install default-jdk; apt-get install  CENTOS yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel])
+	fi
+])
 
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],
@@ -436,21 +439,6 @@ AM_CONDITIONAL([LIBUNISTRING_COMPILE_UNIWIDTH_WIDTH], [false])
 AM_CONDITIONAL([HAVE_DOXYGEN],
 [test -n "$DOXYGEN"])AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([doc/libshare/doxygen.conf doc/sexe/doxygen.conf doc/share-util/doxygen.conf doc/shared/doxygen.conf doc/java-share-lib/doxygen.conf doc/php-share-lib/doxygen.conf])])
 
-AC_CHECK_PROGS([JAVA], [java])
-if test -z "$JAVA";
-   then AC_MSG_WARN([Java not found - continuing without Java Compiler support])
-fi
-AM_CONDITIONAL([HAVE_JAVA], [test -n "$JAVA"])
-AC_CHECK_PROGS([JAVAC], [javac])
-if test -z "$JAVAC";
-   then AC_MSG_WARN([Java Compiler not found - continuing without Java Compiler support])
-fi
-AM_CONDITIONAL([HAVE_JAVAC], [test -n "$JAVAC"])
-AC_CHECK_PROGS([JAR], [jar])
-if test -z "$JAR";
-   then AC_MSG_WARN([Jar not found - continuing without Jar support])
-fi
-AM_CONDITIONAL([HAVE_JAR], [test -n "$JAR"])
 
 # swig - generate java stubs to access base C libshare library.
 AC_CHECK_PROG(SWIG_PROG, [swig], [swig], [true])
@@ -477,11 +465,6 @@ else
   AC_MSG_RESULT(not found)
 fi
 AC_SUBST([PHPLIBDIR])
-
-#AC_CHECK_LIB([curl], [curl_global_init], HAVE_CURL=1)
-#AM_CONDITIONAL(HAVE_CURL, test $HAVE_CURL)
-
-
 
 HAVE_LIBGMP=0
 AC_ARG_ENABLE([ecdsa],
@@ -512,4 +495,3 @@ AC_DEFINE_UNQUOTED([POLARSSL_BIGNUM_C], 1, [X509])
 AC_DEFINE_UNQUOTED([POLARSSL_PLATFORM_C], 1, [X509])
 
 AC_OUTPUT(Makefile src/gnu/Makefile src/share-lib/java/Makefile src/share-lib/Makefile src/sexe/Makefile src/sexe/shell/Makefile src/java-share-lib/Makefile src/php-share-lib/Makefile src/share-util/Makefile doc/libshare/Makefile doc/sexe/Makefile doc/share-util/Makefile doc/java-share-lib/Makefile doc/php-share-lib/Makefile examples/Makefile include/Makefile module/Makefile bin/Makefile db/Makefile)
-

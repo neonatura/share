@@ -503,6 +503,20 @@ int shkey_alg(shkey_t *key);
 
 void shkey_alg_set(shkey_t *key, int alg);
 
+
+/** 64-bit hexadecimal bcrc checksum of a string. */
+char *bcrc_strhex(char *str);
+
+/** 64-bit hexadecimal bcrc checksum. */
+char *bcrc_hex(unsigned char *data, size_t data_len);
+
+/** 64-bit integer bcrc checksum of a string. */
+uint64_t bcrc_str(char *str);
+
+/** 64-bit integer bcrc checksum. */
+uint64_t bcrc(unsigned char *data, size_t data_len);
+
+
 /**
  * @}
  */
@@ -2830,6 +2844,10 @@ void shmap_set_void(shmap_t *ht, shkey_t *key, void *data, size_t data_len);
  */
 char *shmap_get_str(shmap_t *h, shkey_t *key);
 
+int64_t shmap_get_num(shmap_t *h, shkey_t *key);
+
+void shmap_set_num(shmap_t *ht, shkey_t *key, int64_t val);
+
 /**
  * Obtain a non-specific binary data segment from a meta definition hash map.
  * @param h The meta definition hash map.
@@ -3928,14 +3946,23 @@ int shsig_shr_verify(shsig_t *priv_sig, shsig_t *pub_sig, unsigned char *data, s
  * @{
  */
 
-#define shjson_False 0
-#define shjson_True 1
-#define shjson_NULL 2
-#define shjson_Number 3
-#define shjson_String 4
-#define shjson_Array 5
-#define shjson_Object 6
-#define shjson_IsReference 256
+#define SHJSON_FALSE 0
+#define SHJSON_TRUE 1
+#define SHJSON_NULL 2
+#define SHJSON_NUMBER 3
+#define SHJSON_STRING 4
+#define SHJSON_ARRAY 5
+#define SHJSON_OBJECT 6
+#define SHJSON_REFERENCE 256
+#define SHJSON_BOOLEAN 257
+
+#define shjson_False SHJSON_FALSE
+#define shjson_True SHJSON_TRUE
+#define shjson_NULL SHJSON_NULL
+#define shjson_Number SHJSON_NUMBER
+#define shjson_String SHJSON_STRING
+#define shjson_Array SHJSON_ARRAY
+#define shjson_Object SHJSON_OBJECT
 
 typedef struct shjson_t {
   /* next/prev allow you to walk array/object chains. Alternatively, use GetArraySize/GetArrayItem/GetObjectItem */
@@ -3968,6 +3995,15 @@ char *shjson_print(shjson_t *json);
 char *shjson_Print(shjson_t *item);
 
 /**
+ * Obtain the type of variable for a given element.
+ * @param json A json element.
+ * @param name The object element names, or NULL to specify <json> itself. 
+ * @returns A SHJSON_XXX type define.
+ * @note Returns SHJSON_BOOLEAN in the case of SHJSON_TRUE or SHJSON_FALSE.
+ */
+int shjson_type(shjson_t *json, char *name);
+
+/**
  * Obtain an allocated string value from a JSON object.
  * @param tree The JSON object containing the string value.
  * @param name The name of the string JSON node.
@@ -3995,6 +4031,15 @@ char *shjson_astr(shjson_t *json, char *name, char *def_str);
 shjson_t *shjson_str_add(shjson_t *tree, char *name, char *val);
 
 /**
+ * Add a boolean value to a JSON object or array.
+ * @param tree The JSON object or array to append to.
+ * @param name The name of the boolean JSON node or NULL if tree is an array.
+ * @param val Either TRUE or FALSE.
+ * @returns The new JSON node containing the string value.
+ */
+shjson_t *shjson_bool_add(shjson_t *tree, char *name, int val);
+
+/**
  * De-allocates memory associated with a JSON hiearchy.
  * @param tree_p A reference to the JSON hierarchy.
  * @see shjson_init()
@@ -4009,6 +4054,15 @@ void shjson_free(shjson_t **tree_p);
  * @returns The number value contained in the JSON node.
  */
 double shjson_num(shjson_t *json, char *name, double def_d);
+
+/**
+ * Obtain a boolean value from a JSON object.
+ * @param tree The JSON object containing the boolean value.
+ * @param name The name of the boolean JSON node.
+ * @param def_d The default boolean value if the JSON node does not exist.
+ * @returns The boolean value contained in the JSON node.
+ */
+int shjson_bool(shjson_t *json, char *name, int def_d);
 
 /**
  * Add a number value to a JSON object or array.
@@ -4091,6 +4145,8 @@ shjson_t *shjson_obj(shjson_t *json, char *name);
  * @returns The string length of a JSON object node.
  */
 size_t shjson_strlen(shjson_t *json, char *name);
+
+uint64_t shjson_crc(shjson_t *json, char *name);
 
 shjson_t *shjson_obj_get(shjson_t *json, char *name);
 

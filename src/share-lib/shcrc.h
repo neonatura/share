@@ -36,6 +36,11 @@
 uint64_t shcrc(void *data, size_t data_len);
 
 /**
+ * Convert a memory segment into a hexadecimal 64bit number hash code.
+ */
+char *shcrc_hex(void *data, size_t data_len);
+
+/**
  * Converts a memory segment into a 32bit checksum.
  */
 #define shcrc32(_data, _data_len) \

@@ -26,8 +26,8 @@ common_includes = \
 	lzio.h \
 	sexe_bin.h \
 	sexe_var.h \
-	sexe_func.h \
 	sexe_event.h \
+	sexe_io.h \
 	sys/sexe_sys.h
 
 common_sources = \
@@ -44,18 +44,14 @@ common_sources = \
 	lfunc.c \
 	lgc.c \
 	linit.c \
-	liolib.c \
 	llex.c \
-	lmathlib.c \
 	lmem.c \
 	loadlib.c \
 	lobject.c \
 	lopcodes.c \
-	loslib.c \
 	lparser.c \
 	lstate.c \
 	lstring.c \
-	lstrlib.c \
 	ltable.c \
 	ltablib.c \
 	ltm.c \
@@ -63,27 +59,41 @@ common_sources = \
 	lzio.c \
 	sexe_bin.c \
 	sexe_var.c \
-	sexe_func.c \
 	sexe_table.c \
 	sexe_event.c \
-	sys/sexe_math.c \
+	sexe_io.c \
+	sys/sexe_sys_string.c \
+	sys/sexe_sys_math.c \
+	sys/sexe_sys_time.c \
+	sys/sexe_sys_crypt.c \
+	sys/sexe_sys_event.c \
+	sys/sexe_sys_io.c \
 	$(builddir)/sexe.c
 
-#noinst_PROGRAMS = test_sexe.sx test_event.sx
 lib_LIBRARIES = libshare_sexe.a
-bin_PROGRAMS = sx sxc readsexe
+bin_PROGRAMS = sx sxc readsexe static_sx static_sxc
 include_HEADERS = sexe.h sexe_lua.h sexe_conf.h
 lib_LTLIBRARIES = libshare_sexe.la
-TESTS = test_sexe.sh test_event.sh
+TESTS = test_sexe.sh
 
 sx_SOURCES = $(common_includes) $(common_sources) sexe_interp.c
 sx_LDADD = $(top_builddir)/src/share-lib/libshare.la
 sx_CFLAGS= -lm -Wall -DSEXELIB \
 	-I$(top_srcdir)/src/share-lib
 
+static_sx_SOURCES = $(common_includes) $(common_sources) sexe_interp.c
+static_sx_LDADD = $(top_builddir)/src/share-lib/libshare.a
+static_sx_CFLAGS= -lm -Wall -DSEXELIB \
+	-I$(top_srcdir)/src/share-lib
+
 sxc_SOURCES = $(common_includes) $(common_sources) sexe_compile.c
 sxc_LDADD = $(top_builddir)/src/share-lib/libshare.la
 sxc_CFLAGS= -lm -Wall -DSEXELIB \
+	-I$(top_srcdir)/src/share-lib
+
+static_sxc_SOURCES = $(common_includes) $(common_sources) sexe_compile.c
+static_sxc_LDADD = $(top_builddir)/src/share-lib/libshare.a
+static_sxc_CFLAGS= -lm -Wall -DSEXELIB \
 	-I$(top_srcdir)/src/share-lib
 
 readsexe_SOURCES = $(common_includes) $(common_sources) sexe_symbol.c
@@ -139,7 +149,6 @@ endif
 
 test_sexe.sh: test_sexe.sx
 
-test_event.sh: test_event.sx
 
 #aix: $(MAKE) $(ALL) CC="xlc" CFLAGS="-O2 -DLUA_USE_POSIX -DLUA_USE_DLOPEN" SYSLIBS="-ldl" SYSLDFLAGS="-brtl -bexpall"
 #ansi: $(MAKE) $(ALL) SYSCFLAGS="-DLUA_ANSI"
@@ -157,9 +166,6 @@ $(builddir)/libshare.so.3:
 
 test_sexe.sx: sx $(builddir)/libshare.so.3
 	./sxc -g -o test_sexe.sx test_sexe.lua
-
-test_event.sx: sx $(builddir)/libshare.so.3
-	./sxc -g -o test_event.sx test_event.lua
 
 lapi.o: lapi.c luaconf.h lapi.h llimits.h lstate.h lobject.h ltm.h \
  lzio.h lmem.h ldebug.h ldo.h lfunc.h lgc.h lstring.h ltable.h \
@@ -184,17 +190,14 @@ lfunc.o: lfunc.c luaconf.h lfunc.h lobject.h llimits.h lgc.h \
 lgc.o: lgc.c luaconf.h ldebug.h lstate.h lobject.h llimits.h ltm.h \
  lzio.h lmem.h ldo.h lfunc.h lgc.h lstring.h ltable.h
 linit.o: linit.c luaconf.h lualib.h lauxlib.h
-liolib.o: liolib.c luaconf.h lauxlib.h lualib.h
 llex.o: llex.c luaconf.h lctype.h llimits.h ldo.h lobject.h \
  lstate.h ltm.h lzio.h lmem.h llex.h lparser.h lstring.h lgc.h ltable.h
-lmathlib.o: lmathlib.c luaconf.h lauxlib.h lualib.h
 lmem.o: lmem.c luaconf.h ldebug.h lstate.h lobject.h llimits.h \
  ltm.h lzio.h lmem.h ldo.h lgc.h
 loadlib.o: loadlib.c luaconf.h lauxlib.h lualib.h
 lobject.o: lobject.c luaconf.h lctype.h llimits.h ldebug.h lstate.h \
  lobject.h ltm.h lzio.h lmem.h ldo.h lstring.h lgc.h lvm.h
 lopcodes.o: lopcodes.c lopcodes.h llimits.h luaconf.h
-loslib.o: loslib.c luaconf.h lauxlib.h lualib.h
 lparser.o: lparser.c luaconf.h lcode.h llex.h lobject.h llimits.h \
  lzio.h lmem.h lopcodes.h lparser.h ldebug.h lstate.h ltm.h ldo.h lfunc.h \
  lstring.h lgc.h ltable.h
@@ -203,7 +206,6 @@ lstate.o: lstate.c luaconf.h lapi.h llimits.h lstate.h lobject.h \
  ltable.h
 lstring.o: lstring.c luaconf.h lmem.h llimits.h lobject.h lstate.h \
  ltm.h lzio.h lstring.h lgc.h
-lstrlib.o: lstrlib.c luaconf.h lauxlib.h lualib.h
 ltable.o: ltable.c luaconf.h ldebug.h lstate.h lobject.h llimits.h \
  ltm.h lzio.h lmem.h ldo.h lgc.h lstring.h ltable.h lvm.h
 ltablib.o: ltablib.c luaconf.h lauxlib.h lualib.h

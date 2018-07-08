@@ -186,8 +186,8 @@ static void shjson_Delete(shjson_t *c)
 	while (c)
 	{
 		next=c->next;
-		if (!(c->type&shjson_IsReference) && c->child) shjson_Delete(c->child);
-		if (!(c->type&shjson_IsReference) && c->valuestring) shjson_FreeMem(c->valuestring);
+		if (!(c->type&SHJSON_REFERENCE) && c->child) shjson_Delete(c->child);
+		if (!(c->type&SHJSON_REFERENCE) && c->valuestring) shjson_FreeMem(c->valuestring);
 		if (c->string) shjson_FreeMem(c->string);
 		shjson_FreeMem(c);
 		c=next;
@@ -212,7 +212,7 @@ static const char *parse_number(shjson_t *item,const char *num)
 	
 	item->valuedouble=n;
 	item->valueint=(int)n;
-	item->type=shjson_Number;
+	item->type=SHJSON_NUMBER;
 	return num;
 }
 
@@ -261,6 +261,43 @@ double shjson_num(shjson_t *json, char *name, double def_d)
 	}
 
 	return (d);
+}
+
+int shjson_bool(shjson_t *json, char *name, int def_d)
+{
+  shjson_t *item;
+	double d;
+
+  if (!json)
+    return (0);
+
+  if (name) {
+    item = shjson_GetObjectItem(json, name);
+    if (!item)
+      return (def_d);
+  } else {
+    item = json;
+  }
+
+	if (item->type == SHJSON_TRUE)
+		return (TRUE);
+
+	return (FALSE);
+}
+
+int shjson_type(shjson_t *json, char *name)
+{
+	if (name) {
+		json = shjson_GetObjectItem(json, name);
+	}
+	if (!json)
+		return (SHJSON_NULL);
+
+	if (json->type == SHJSON_TRUE ||
+			json->type == SHJSON_FALSE)
+		return (SHJSON_BOOLEAN);
+
+	return (json->type);
 }
 
 char *shjson_astr(shjson_t *json, char *name, char *def_str)
@@ -315,6 +352,29 @@ size_t shjson_strlen(shjson_t *json, char *name)
   if (!str)
     return (0);
   return ((size_t)strlen(str));
+}
+
+uint64_t shjson_crc(shjson_t *json, char *name)
+{
+	if (name)
+		json = shjson_obj_get(json, name);
+
+	if (json->type == SHJSON_STRING) {
+		return (shcrc(json->valuestring, strlen(json->valuestring)));
+	} 
+
+	if (json->type == SHJSON_NUMBER) {
+		double d;
+
+		d = json->valuedouble;
+		if (fabs(((double)json->valueint)-d)<=DBL_EPSILON && d<=INT_MAX && d>=INT_MIN) {
+			d = (double)json->valueint;
+		}
+
+		return (shcrc(&d, sizeof(d)));
+	}
+
+	return (shcrc(&json->type, sizeof(json->type)));
 }
 
 static unsigned parse_hex4(const char *str)
@@ -387,7 +447,7 @@ static const char *parse_string(shjson_t *item,const char *str)
 	*ptr2=0;
 	if (*ptr=='\"') ptr++;
 	item->valuestring=out;
-	item->type=shjson_String;
+	item->type=SHJSON_STRING;
 	return ptr;
 }
 
@@ -467,9 +527,9 @@ char *shjson_PrintUnformatted(shjson_t *item)	{return print_value(item,0,0);}
 static const char *parse_value(shjson_t *item,const char *value)
 {
 	if (!value)						return 0;	/* Fail on null. */
-	if (!strncmp(value,"null",4))	{ item->type=shjson_NULL;  return value+4; }
-	if (!strncmp(value,"false",5))	{ item->type=shjson_False; return value+5; }
-	if (!strncmp(value,"true",4))	{ item->type=shjson_True; item->valueint=1;	return value+4; }
+	if (!strncmp(value,"null",4))	{ item->type=SHJSON_NULL;  return value+4; }
+	if (!strncmp(value,"false",5))	{ item->type=SHJSON_FALSE; return value+5; }
+	if (!strncmp(value,"true",4))	{ item->type=SHJSON_TRUE; item->valueint=1;	return value+4; }
 	if (*value=='\"')				{ return parse_string(item,value); }
 	if (*value=='-' || (*value>='0' && *value<='9'))	{ return parse_number(item,value); }
 	if (*value=='[')				{ return parse_array(item,value); }
@@ -485,13 +545,13 @@ static char *print_value(shjson_t *item,int depth,int fmt)
 	if (!item) return 0;
 	switch ((item->type)&255)
 	{
-		case shjson_NULL:	out=shjson_strdup("null");	break;
-		case shjson_False:	out=shjson_strdup("false");break;
-		case shjson_True:	out=shjson_strdup("true"); break;
-		case shjson_Number:	out=print_number(item);break;
-		case shjson_String:	out=print_string(item);break;
-		case shjson_Array:	out=print_array(item,depth,fmt);break;
-		case shjson_Object:	out=print_object(item,depth,fmt);break;
+		case SHJSON_NULL:	out=shjson_strdup("null");	break;
+		case SHJSON_FALSE:	out=shjson_strdup("false");break;
+		case SHJSON_TRUE:	out=shjson_strdup("true"); break;
+		case SHJSON_NUMBER:	out=print_number(item);break;
+		case SHJSON_STRING:	out=print_string(item);break;
+		case SHJSON_ARRAY:	out=print_array(item,depth,fmt);break;
+		case SHJSON_OBJECT:	out=print_object(item,depth,fmt);break;
 	}
 	return out;
 }
@@ -502,7 +562,7 @@ static const char *parse_array(shjson_t *item,const char *value)
 	shjson_t *child;
 	if (*value!='[')	{ep=value;return 0;}	/* not an array! */
 
-	item->type=shjson_Array;
+	item->type=SHJSON_ARRAY;
 	value=skip(value+1);
 	if (*value==']') return value+1;	/* empty array. */
 
@@ -588,7 +648,7 @@ static const char *parse_object(shjson_t *item,const char *value)
 	shjson_t *child;
 	if (*value!='{')	{ep=value;return 0;}	/* not an object! */
 	
-	item->type=shjson_Object;
+	item->type=SHJSON_OBJECT;
 	value=skip(value+1);
 	if (*value=='}') return value+1;	/* empty array. */
 	
@@ -694,7 +754,7 @@ shjson_t *shjson_GetObjectItem(shjson_t *object,const char *string)	{shjson_t *c
 /* Utility for array list handling. */
 static void suffix_object(shjson_t *prev,shjson_t *item) {prev->next=item;item->prev=prev;}
 /* Utility for handling references. */
-static shjson_t *create_reference(shjson_t *item) {shjson_t *ref=shjson_New_Item();if (!ref) return 0;memcpy(ref,item,sizeof(shjson_t));ref->string=0;ref->type|=shjson_IsReference;ref->next=ref->prev=0;return ref;}
+static shjson_t *create_reference(shjson_t *item) {shjson_t *ref=shjson_New_Item();if (!ref) return 0;memcpy(ref,item,sizeof(shjson_t));ref->string=0;ref->type|=SHJSON_REFERENCE;ref->next=ref->prev=0;return ref;}
 
 /* Add item to array/object. */
 void   shjson_AddItemToArray(shjson_t *array, shjson_t *item)						{shjson_t *c=array->child;if (!item) return; if (!c) {array->child=item;} else {while (c && c->next) c=c->next; suffix_object(c,item);}}
@@ -715,14 +775,14 @@ void   shjson_ReplaceItemInArray(shjson_t *array,int which,shjson_t *newitem)		{
 void   shjson_ReplaceItemInObject(shjson_t *object,const char *string,shjson_t *newitem){int i=0;shjson_t *c=object->child;while(c && shjson_strcasecmp(c->string,string))i++,c=c->next;if(c){newitem->string=shjson_strdup(string);shjson_ReplaceItemInArray(object,i,newitem);}}
 
 /* Create basic types: */
-shjson_t *shjson_CreateNull(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=shjson_NULL;return item;}
-shjson_t *shjson_CreateTrue(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=shjson_True;return item;}
-shjson_t *shjson_CreateFalse(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=shjson_False;return item;}
-shjson_t *shjson_CreateBool(int b)					{shjson_t *item=shjson_New_Item();if(item)item->type=b?shjson_True:shjson_False;return item;}
-shjson_t *shjson_CreateNumber(double num)			{shjson_t *item=shjson_New_Item();if(item){item->type=shjson_Number;item->valuedouble=num;item->valueint=(int)num;}return item;}
-shjson_t *shjson_CreateString(const char *string)	{shjson_t *item=shjson_New_Item();if(item){item->type=shjson_String;item->valuestring=shjson_strdup(string);}return item;}
-shjson_t *shjson_CreateArray(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=shjson_Array;return item;}
-shjson_t *shjson_CreateObject(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=shjson_Object;return item;}
+shjson_t *shjson_CreateNull(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=SHJSON_NULL;return item;}
+shjson_t *shjson_CreateTrue(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=SHJSON_TRUE;return item;}
+shjson_t *shjson_CreateFalse(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=SHJSON_FALSE;return item;}
+shjson_t *shjson_CreateBool(int b)					{shjson_t *item=shjson_New_Item();if(item)item->type=b?SHJSON_TRUE:SHJSON_FALSE;return item;}
+shjson_t *shjson_CreateNumber(double num)			{shjson_t *item=shjson_New_Item();if(item){item->type=SHJSON_NUMBER;item->valuedouble=num;item->valueint=(int)num;}return item;}
+shjson_t *shjson_CreateString(const char *string)	{shjson_t *item=shjson_New_Item();if(item){item->type=SHJSON_STRING;item->valuestring=shjson_strdup(string);}return item;}
+shjson_t *shjson_CreateArray(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=SHJSON_ARRAY;return item;}
+shjson_t *shjson_CreateObject(void)					{shjson_t *item=shjson_New_Item();if(item)item->type=SHJSON_OBJECT;return item;}
 
 /* Create Arrays: */
 shjson_t *shjson_CreateIntArray(const int *numbers,int count)		{int i;shjson_t *n=0,*p=0,*a=shjson_CreateArray();for(i=0;a && i<count;i++){n=shjson_CreateNumber(numbers[i]);if(!i)a->child=n;else suffix_object(p,n);p=n;}return a;}
@@ -740,7 +800,7 @@ shjson_t *shjson_Duplicate(shjson_t *item,int recurse)
 	newitem=shjson_New_Item();
 	if (!newitem) return 0;
 	/* Copy over all vars */
-	newitem->type=item->type&(~shjson_IsReference),newitem->valueint=item->valueint,newitem->valuedouble=item->valuedouble;
+	newitem->type=item->type&(~SHJSON_REFERENCE),newitem->valueint=item->valueint,newitem->valuedouble=item->valuedouble;
 	if (item->valuestring)	{newitem->valuestring=shjson_strdup(item->valuestring);	if (!newitem->valuestring)	{shjson_Delete(newitem);return 0;}}
 	if (item->string)		{newitem->string=shjson_strdup(item->string);			if (!newitem->string)		{shjson_Delete(newitem);return 0;}}
 	/* If non-recursive, then we're done! */
@@ -789,7 +849,7 @@ shjson_t *shjson_init(char *json_str)
 
   if (!json_str) {
     tree = shjson_New_Item();
-    tree->type = shjson_Object;
+    tree->type = SHJSON_OBJECT;
   } else {
     tree = shjson_Parse(json_str);
   }

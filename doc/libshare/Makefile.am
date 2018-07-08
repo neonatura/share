@@ -30,12 +30,17 @@ dist_man_MANS = \
 	man/man3/shmeta_get_void.3 \
 	man/man3/shmeta_get.3 \
 	man/man3/shmeta_print.3 \
-	man/man3/shcrypt_ashencode.3 \
-	man/man3/shcrypt_shencode.3 \
-	man/man3/shcrypt_shencode_str.3 \
-	man/man3/shcrypt_ashdecode.3 \
-	man/man3/shcrypt_shdecode.3 \
-	man/man3/shcrypt_shdecode_str.3 \
+	man/man3/ashencode.3 \
+	man/man3/shencode.3 \
+	man/man3/shencode_str.3 \
+	man/man3/ashdecode.3 \
+	man/man3/shdecode.3 \
+	man/man3/shdecode_str.3 \
+	man/man3/shencrypt.3 \
+	man/man3/shdecrypt.3 \
+	man/man3/shdecrypt_verify.3 \
+	man/man3/shdecrypt_derive.3 \
+	man/man3/shdecrypt_derive_verify.3 \
 	man/man3/shkey_bin.3 \
 	man/man3/shkey_str.3 \
 	man/man3/shkey_num.3 \
@@ -126,7 +131,27 @@ dist_man_MANS = \
 	man/man3/shgeodb_name.3 \
 	man/man3/shgeo_place_desc.3 \
 	man/man3/shgeo_place_prec.3 \
-	man/man3/shgeo_place_codes.3
+	man/man3/shgeo_place_codes.3 \
+	man/man3/shlog.3 \
+	man/man3/sherr.3 \
+	man/man3/shwarn.3 \
+	man/man3/shinfo.3 \
+	man/man3/shlog_path.3 \
+	man/man3/shlog_path_set.3 \
+	man/man3/shlog_level.3 \
+	man/man3/shlog_level_set.3 \
+	man/man3/shtimef.3 \
+	man/man3/shtime.3 \
+	man/man3/shtimeu.3 \
+	man/man3/shtimems.3 \
+	man/man3/shctime.3 \
+	man/man3/shutimef.3 \
+	man/man3/shstrtime.3 \
+	man/man3/shtime_adj.3 \
+	man/man3/shgettime.3 \
+	man/man3/shtime_after.3 \
+	man/man3/shtime_before.3 \
+	man/man3/shmktime.3
 
 man/man3/libshare.3: doxyfile.stamp
 man/man3/libshare_mem.3: doxyfile.stamp
@@ -150,12 +175,17 @@ man/man3/shmeta_get_str.3: doxyfile.stamp
 man/man3/shmeta_get_void.3: doxyfile.stamp
 man/man3/shmeta_get.3: doxyfile.stamp
 man/man3/shmeta_print.3: doxyfile.stamp
-man/man3/shcrypt_ashencode.3: doxyfile.stamp
-man/man3/shcrypt_shencode.3: doxyfile.stamp
-man/man3/shcrypt_shencode_str.3: doxyfile.stamp
-man/man3/shcrypt_ashdecode.3: doxyfile.stamp
-man/man3/shcrypt_shdecode.3: doxyfile.stamp
-man/man3/shcrypt_shdecode_str.3: doxyfile.stamp
+man/man3/ashencode.3: doxyfile.stamp
+man/man3/shencode.3: doxyfile.stamp
+man/man3/shencode_str.3: doxyfile.stamp
+man/man3/ashdecode.3: doxyfile.stamp
+man/man3/shdecode.3: doxyfile.stamp
+man/man3/shdecode_str.3: doxyfile.stamp
+man/man3/shencrypt.3: doxyfile.stamp
+man/man3/shdecrypt.3: doxyfile.stamp
+man/man3/shdecrypt_verify.3: doxyfile.stamp
+man/man3/shdecrypt_derive.3: doxyfile.stamp
+man/man3/shdecrypt_derive_verify.3: doxyfile.stamp
 man/man3/shkey_bin.3: doxyfile.stamp
 man/man3/shkey_str.3: doxyfile.stamp
 man/man3/shkey_num.3: doxyfile.stamp
@@ -256,6 +286,26 @@ man/man3/shgeodb_name.3: doxyfile.stamp
 man/man3/shgeo_place_desc.3: doxyfile.stamp
 man/man3/shgeo_place_prec.3: doxyfile.stamp
 man/man3/shgeo_place_codes.3: doxyfile.stamp
+man/man3/shlog.3: doxyfile.stamp
+man/man3/sherr.3: doxyfile.stamp
+man/man3/shwarn.3: doxyfile.stamp
+man/man3/shinfo.3: doxyfile.stamp
+man/man3/shlog_path.3: doxyfile.stamp
+man/man3/shlog_path_set.3: doxyfile.stamp
+man/man3/shlog_level.3: doxyfile.stamp
+man/man3/shlog_level_set.3: doxyfile.stamp
+man/man3/shtimef.3: doxyfile.stamp
+man/man3/shtime.3: doxyfile.stamp
+man/man3/shtimeu.3: doxyfile.stamp
+man/man3/shtimems.3: doxyfile.stamp
+man/man3/shctime.3: doxyfile.stamp
+man/man3/shutimef.3: doxyfile.stamp
+man/man3/shstrtime.3: doxyfile.stamp
+man/man3/shtime_adj.3: doxyfile.stamp
+man/man3/shgettime.3: doxyfile.stamp
+man/man3/shtime_after.3: doxyfile.stamp
+man/man3/shtime_before.3: doxyfile.stamp
+man/man3/shmktime.3: doxyfile.stamp
 
 $(htmldir): doxyfile.stamp
 
@@ -283,12 +333,17 @@ doxyfile.stamp:
 	cp -f man/man3/libshare_memmeta.3 man/man3/shmeta_get_void.3
 	cp -f man/man3/libshare_memmeta.3 man/man3/shmeta_get.3
 	cp -f man/man3/libshare_memmeta.3 man/man3/shmeta_print.3
-	cp -f man/man3/libshare_memcrypt.3 man/man3/shcrypt_ashencode.3
-	cp -f man/man3/libshare_memcrypt.3 man/man3/shcrypt_shencode.3
-	cp -f man/man3/libshare_memcrypt.3 man/man3/shcrypt_shencode_str.3
-	cp -f man/man3/libshare_memcrypt.3 man/man3/shcrypt_ashdecode.3
-	cp -f man/man3/libshare_memcrypt.3 man/man3/shcrypt_shdecode.3
-	cp -f man/man3/libshare_memcrypt.3 man/man3/shcrypt_shdecode_str.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/ashencode.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/shencode.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/shencode_str.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/ashdecode.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/shdecode.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/shdecode_str.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/shencrypt.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/shdecrypt.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/shdecrypt_verify.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/shdecrypt_derive.3
+	cp -f man/man3/libshare_memcrypt.3 man/man3/shdecrypt_derive_verify.3
 	cp -f man/man3/libshare_memkey.3 man/man3/shkey_bin.3
 	cp -f man/man3/libshare_memkey.3 man/man3/shkey_str.3
 	cp -f man/man3/libshare_memkey.3 man/man3/shkey_num.3
@@ -382,6 +437,26 @@ doxyfile.stamp:
 	cp -f man/man3/libshare_sysgeo.3 man/man3/shgeo_place_desc.3
 	cp -f man/man3/libshare_sysgeo.3 man/man3/shgeo_place_prec.3
 	cp -f man/man3/libshare_sysgeo.3 man/man3/shgeo_place_codes.3
+	cp -f man/man3/libshare_syslog.3 man/man3/shlog.3
+	cp -f man/man3/libshare_syslog.3 man/man3/sherr.3
+	cp -f man/man3/libshare_syslog.3 man/man3/shwarn.3
+	cp -f man/man3/libshare_syslog.3 man/man3/shinfo.3
+	cp -f man/man3/libshare_syslog.3 man/man3/shlog_path.3
+	cp -f man/man3/libshare_syslog.3 man/man3/shlog_path_set.3
+	cp -f man/man3/libshare_syslog.3 man/man3/shlog_level.3
+	cp -f man/man3/libshare_syslog.3 man/man3/shlog_level_set.3
+	cp -f man/man3/libshare_time.3 man/man3/shtimef.3
+	cp -f man/man3/libshare_time.3 man/man3/shtime.3
+	cp -f man/man3/libshare_time.3 man/man3/shtimeu.3
+	cp -f man/man3/libshare_time.3 man/man3/shtimems.3
+	cp -f man/man3/libshare_time.3 man/man3/shctime.3
+	cp -f man/man3/libshare_time.3 man/man3/shutimef.3
+	cp -f man/man3/libshare_time.3 man/man3/shstrtime.3
+	cp -f man/man3/libshare_time.3 man/man3/shtime_adj.3
+	cp -f man/man3/libshare_time.3 man/man3/shgettime.3
+	cp -f man/man3/libshare_time.3 man/man3/shtime_after.3
+	cp -f man/man3/libshare_time.3 man/man3/shtime_before.3
+	cp -f man/man3/libshare_time.3 man/man3/shmktime.3
 	echo Timestamp > doxyfile.stamp
 
 libshare_html.tar.gz: doxyfile.stamp

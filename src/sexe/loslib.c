@@ -305,12 +305,20 @@ static const luaL_Reg syslib[] = {
   {NULL, NULL}
 };
 
-/* }====================================================== */
+static const luaL_Reg timelib[] = {
+  {"clock",     os_clock},
+  {"date",      os_date},
+  {"difftime",  os_difftime},
+  {"time",      os_time},
+  {NULL, NULL}
+};
 
+/* }====================================================== */
 
 
 LUAMOD_API int luaopen_os (lua_State *L) {
   luaL_newlib(L, syslib);
   return 1;
 }
+
 

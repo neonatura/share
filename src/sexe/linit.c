@@ -17,12 +17,13 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_LOADLIBNAME, luaopen_package},
   {LUA_COLIBNAME, luaopen_coroutine},
   {LUA_TABLIBNAME, luaopen_table},
-  {LUA_IOLIBNAME, luaopen_io},
-  {LUA_OSLIBNAME, luaopen_os},
-  {LUA_STRLIBNAME, luaopen_string},
-  {LUA_BITLIBNAME, luaopen_bit32},
-  {LUA_MATHLIBNAME, luaopen_math},
+//  {LUA_IOLIBNAME, luaopen_io},
+//  {LUA_OSLIBNAME, luaopen_os},
+//  {LUA_STRLIBNAME, luaopen_string},
+//  {LUA_BITLIBNAME, luaopen_bit32},
+//  {LUA_MATHLIBNAME, luaopen_math},
   {LUA_DBLIBNAME, luaopen_debug},
+  { LUA_EVENTLIBNAME, luaopen_event },
   {NULL, NULL}
 };
 
@@ -50,4 +51,5 @@ LUALIB_API void luaL_openlibs (lua_State *L) {
   }
   lua_pop(L, 1);  /* remove _PRELOAD table */
 }
+
 

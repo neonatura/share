@@ -918,3 +918,57 @@ _TEST(shcr224)
   _TRUE(err == 0);
 }
 
+
+/* BCRC: a checksum-oriented convience set of functions */
+uint64_t bcrc(unsigned char *data, size_t data_len)
+{
+	unsigned char digest[64];
+	uint64_t crc; 
+	uint64_t b;
+	uint32_t *i_val;
+	int err;
+	int i;
+
+	b = 0;
+	crc = 1;
+
+	/* <data_len> -> 28 bytes */
+	memset(digest, 0, sizeof(digest));
+	(void)shr224(data, data_len, digest);
+
+	/* 28 bytes -> 8 bytes */
+	i_val = (uint32_t *)digest;
+	for (i = 0; i < 7; i++) {
+		crc += (uint64_t)i_val[i];
+		b |= crc;
+		crc += (b << 32);
+	}
+
+	return (crc);
+}
+
+uint64_t bcrc_str(char *str)
+{
+	return (bcrc(str, strlen(str)));
+}
+
+char *bcrc_hex(unsigned char *data, size_t data_len)
+{
+	static char ret_str[64];
+	uint64_t crc;
+	uint32_t *i_val;
+
+	crc = bcrc(data, data_len);
+	i_val = (uint32_t *)&crc;
+
+	memset(ret_str, 0, sizeof(ret_str));
+	sprintf(ret_str, "%-8.8x%-8.8x", i_val[0], i_val[1]);
+
+	return (ret_str);
+}
+
+char *bcrc_strhex(char *str)
+{
+	return (bcrc_hex(str, strlen(str)));
+}
+

@@ -71,7 +71,7 @@ int shnet_listen(int sockfd, int backlog)
 
   err = listen(sockfd, backlog);
   if (err)
-    return (-errno);
+    return (errno2sherr());
 
   return (0);
 }

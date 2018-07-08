@@ -330,7 +330,7 @@ int sharetool_cert_verify(char *cert_alias)
   if ((cert->flag & SHCERT_CERT_CHAIN)) {
     /* load the certificate from the system hierarchy. */
     err = sharetool_cert_load(cert->iss, &pcert);
-fprintf(stderr, "DEBUG: %d = sharetool_cert_load/chain('%s')\n", err, cert->iss);
+//fprintf(stderr, "DEBUG: %d = sharetool_cert_load/chain('%s')\n", err, cert->iss);
     if (err)
       return (err);
   }

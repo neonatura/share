@@ -1,4 +1,27 @@
 
+/*
+ * @copyright
+ *
+ *  Copyright 2014 Neo Natura
+ *
+ *  This file is part of the Share Library.
+ *  (https://github.com/neonatura/share)
+ *        
+ *  The Share Library is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version. 
+ *
+ *  The Share Library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with The Share Library.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  @endcopyright
+ */
 
 #include <string.h>
 
@@ -18,7 +41,7 @@
 #include "lstate.h"
 #include "lstring.h"
 #include "ltable.h"
-
+#include "lualib.h"
 
 
 /* maximum number of local variables per function (must be smaller
@@ -28,6 +51,16 @@
 
 #define hasmultret(k)		((k) == VCALL || (k) == VVARARG)
 
+#if 0
+const luaL_Reg systemlibs[] = {
+  {LUA_TIMELIBNAME, luaopen_time},
+  {LUA_STRLIBNAME, luaopen_string},
+  {LUA_MATHLIBNAME, luaopen_math},
+  {LUA_CRYPTLIBNAME, luaopen_crypt},
+  {LUA_DBLIBNAME, luaopen_debug},
+  {NULL, NULL}
+};
+#endif
 
 
 /*
@@ -51,6 +84,57 @@ static void statement (LexState *ls);
 static void expr (LexState *ls, expdesc *v);
 
 
+
+static l_noret error_expected (LexState *ls, int token) {
+  luaX_syntaxerror(ls,
+      luaO_pushfstring(ls->L, "%s expected", luaX_token2str(ls, token)));
+}
+
+static void check (LexState *ls, int c) {
+  if (ls->t.token != c)
+    error_expected(ls, c);
+}
+
+static TString *str_checkname (LexState *ls) {
+  TString *ts;
+  check(ls, TK_NAME);
+  ts = ls->t.seminfo.ts;
+  luaX_next(ls);
+  return ts;
+}
+
+#if 0
+void lua_systemlib_load(LexState *ls)
+{
+  TString *libname;// = str_checkname(ls);
+  lua_State *L = ls->L;
+	const luaL_Reg *lib;
+
+	check(ls, TK_STRING);
+	libname = ls->t.seminfo.ts;
+  luaX_next(ls);
+
+  for (lib = systemlibs; lib->func; lib++) {
+    if (0 == strcasecmp(lib->name, getstr(libname))) {
+      luaL_requiref(L, lib->name, lib->func, 1);
+			lua_pop(L, 1);  /* remove lib */
+
+#if 0
+			/* add open functions from 'preloadedlibs' into 'package.preload' table */
+			luaL_getsubtable(L, LUA_REGISTRYINDEX, "_PRELOAD");
+			lua_pushcfunction(L, lib->func);
+			lua_setfield(L, -2, lib->name);
+			lua_pop(L, 1);  /* remove _PRELOAD table */
+#endif
+
+      break;
+    }
+  }
+
+}
+#endif
+
+
 static void anchor_token (LexState *ls) {
   /* last token from outer function must be EOS */
   lua_assert(ls->fs != NULL || ls->t.token == TK_EOS);
@@ -68,10 +152,6 @@ static l_noret semerror (LexState *ls, const char *msg) {
 }
 
 
-static l_noret error_expected (LexState *ls, int token) {
-  luaX_syntaxerror(ls,
-      luaO_pushfstring(ls->L, "%s expected", luaX_token2str(ls, token)));
-}
 
 
 static l_noret errorlimit (FuncState *fs, int limit, const char *what) {
@@ -101,10 +181,6 @@ static int testnext (LexState *ls, int c) {
 }
 
 
-static void check (LexState *ls, int c) {
-  if (ls->t.token != c)
-    error_expected(ls, c);
-}
 
 
 static void checknext (LexState *ls, int c) {
@@ -130,13 +206,6 @@ static void check_match (LexState *ls, int what, int who, int where) {
 }
 
 
-static TString *str_checkname (LexState *ls) {
-  TString *ts;
-  check(ls, TK_NAME);
-  ts = ls->t.seminfo.ts;
-  luaX_next(ls);
-  return ts;
-}
 
 
 static void init_exp (expdesc *e, expkind k, int i) {
@@ -276,7 +345,8 @@ static int singlevaraux (FuncState *fs, TString *n, expdesc *var, int base) {
     else {  /* not found as local at current level; try upvalues */
       int idx = searchupvalue(fs, n);  /* try existing upvalues */
       if (idx < 0) {  /* not found? */
-        if (singlevaraux(fs->prev, n, var, 0) == VVOID) /* try upper levels */
+				int k;
+        if ((k=singlevaraux(fs->prev, n, var, 0)) == VVOID) /* try upper levels */
           return VVOID;  /* not found; is a global */
         /* else was LOCAL or UPVAL */
         idx  = newupvalue(fs, n, var);  /* will be a new upvalue */
@@ -1469,6 +1539,263 @@ static void funcstat (LexState *ls, int line) {
   luaK_fixline(ls->fs, line);  /* definition `happens' in the first line */
 }
 
+static void eventfuncargs(LexState *ls, expdesc *f, TString *varname, TString *event_id)
+{
+  FuncState *fs = ls->fs;
+  int line = ls->linenumber;  /* may be needed for error messages */
+  expdesc args;
+  int base, nparams;
+
+	/* first parameter : event id */
+	codestring(ls, &args, event_id); /* variable being passed */
+
+	luaK_exp2nextreg(ls->fs, &args);
+
+	/* second parameter : user-data "param" */
+	int l = searchvar(fs, varname);  /* look up local "param" at current level */
+	if (l >= 0)   /* found? */
+		init_exp(&args, VLOCAL, l);  /* variable is local */
+
+  base = f->u.info;  /* base register for call */
+	luaK_exp2nextreg(fs, &args);  /* close last argument */
+	nparams = fs->freereg - (base+1);
+  init_exp(f, VCALL, luaK_codeABC(fs, OP_CALL, base, nparams+1, 2));
+  luaK_fixline(fs, line);
+  fs->freereg = base+1;  /* call remove function and arguments */
+
+}
+
+static void eventstatlist(LexState *ls, expdesc *e, TString *varname, TString *event_id)
+{
+	lua_State *L = ls->L;
+	/* body: for each a = _EVENT.<hash> { call a(param) } */
+  int line = ls->linenumber;  /* may be needed for error messages */
+	FuncState *fs = ls->fs;
+  expdesc v;
+	int k;
+
+  enterlevel(ls);
+	//  primaryexp(ls, &v.v);
+	memset(&v, 0, sizeof(v));
+
+#if 0
+	{
+		FuncState *fs = ls->fs;
+		if ((k=singlevaraux(fs, varname, var, 1)) == VVOID) {  /* global name? */
+			expdesc key;
+			k = singlevaraux(fs, ls->envn, var, 1);  /* get environment variable */
+			lua_assert(var->k == VLOCAL || var->k == VUPVAL);
+			codestring(ls, &key, varname);  /* key is variable name */
+			luaK_indexed(fs, var, &key);  /* env[varname] */
+		}
+	}
+#endif
+#if 0
+	{	
+		expdesc key;
+		TString *libname = luaX_newstring(ls, "os", 2);
+		TString *callname = luaX_newstring(ls, "trigger", 7);
+		k = singlevaraux(fs, ls->envn, &v, 1);  /* get environment variable */
+		lua_assert(v.k == VLOCAL || v.k == VUPVAL);
+memset(&key, 0, sizeof(key));
+		codestring(ls, &key, libname);  /* key is variable name */
+		luaK_indexed(fs, &v, &key);  /* _ENV["os"] */
+		lua_assert(v.k == VINDEXED);
+
+		/* "trigger" func */
+memset(&key, 0, sizeof(key));
+		codestring(ls, &key, callname);  /* key is variable name */
+		luaK_indexed(fs, &v, &key);  /* os.trigger */
+		lua_assert(v.k == VINDEXED);
+
+k = VCALL;
+	}
+#endif
+	{	
+		expdesc key;
+
+		k = singlevaraux(fs, ls->envn, &v, 1);  /* get environment variable */
+		lua_assert(v.k == VLOCAL || v.k == VUPVAL);
+
+		/* "os" library */
+		TString *libname = luaX_newstring(ls, "os", 2);
+		memset(&key, 0, sizeof(key));
+		codestring(ls, &key, libname);  /* key is variable name */
+		luaK_indexed(fs, &v, &key);  /* _ENV["os"] */
+		lua_assert(v.k == VINDEXED);
+
+	  luaK_exp2anyregup(fs, &v);
+
+		/* "trigger" function */
+		TString *callname = luaX_newstring(ls, "trigger", 7);
+		memset(&key, 0, sizeof(key));
+		codestring(ls, &key, callname);  /* key is variable name */
+		luaK_indexed(fs, &v, &key);  /* _ENV["os"] */
+		lua_assert(v.k == VINDEXED);
+
+k = VCALL;
+	}
+
+	//k = singlevaraux(fs, callname, &v, 1);
+	if (k == VCALL) { /* 'local function' */
+		/* calling function argument */
+		// primaryexp(ls, &v.v) 
+		luaK_exp2nextreg(fs, &v); /* close last argument */
+		eventfuncargs(ls, &v, varname, event_id);
+
+
+//		luaK_exp2nextreg(ls->fs, &v);
+
+
+#if 0
+		/* call function */
+		SETARG_C(getcode(fs, &v), 2);  /* call statement with single bool result. */
+#endif
+		v.k = VNONRELOC;
+		v.u.info = GETARG_A(getcode(fs, &v));
+
+		/* store return variable */
+		luaK_storevar(fs, &v, e);
+
+		/* single boolean variable returned */
+		{ /* retstat(ls); */
+			expdesc e;
+			const int nret = 1;
+			luaK_ret(fs, 1, nret);
+		}
+	}
+
+  ls->fs->freereg = ls->fs->nactvar;  /* free registers */
+  leavelevel(ls);
+}
+
+static void eventparlist(LexState *ls, TString *var_name)
+{
+	FuncState *fs = ls->fs;
+	Proto *f = fs->f;
+	int nparams = 0;
+
+	f->is_vararg = 0;
+
+	/* event data argument named "param" */
+	new_localvar(ls, var_name); nparams++;
+
+  adjustlocalvars(ls, nparams);
+	f->numparams = cast_byte(fs->nactvar);
+	luaK_reserveregs(fs, fs->nactvar);  /* reserve register for parameters */
+
+}
+
+static void eventbody(LexState *ls, expdesc *e, int ismethod, int line, char *event_name) 
+{
+	/* body ->  `(' parlist `)' block END */
+	TString *event_id;
+	lua_State *L = ls->L;
+	FuncState new_fs;
+	BlockCnt bl;
+
+
+	open_func(ls, &new_fs, &bl);
+	new_fs.f->linedefined = line;
+
+	/* single argument */
+	//  checknext(ls, '(');
+	if (ismethod) {
+		new_localvarliteral(ls, "self");  /* create 'self' parameter */
+		adjustlocalvars(ls, 1);
+	}
+	TString *param_str = luaX_newstring(ls, "param", strlen("param"));
+	eventparlist(ls, param_str);
+	//  checknext(ls, ')');
+
+	//event_id = luaS_new(L, sexe_event_id(event_name));
+	//eventstatlist(ls, param_str, event_id);
+	event_id = luaS_new(L, event_name);
+	eventstatlist(ls, e, param_str, event_id);
+
+	new_fs.f->lastlinedefined = ls->linenumber;
+	//check_match(ls, TK_END, TK_FUNCTION, line);
+	codeclosure(ls, new_fs.f, e);
+	close_func(ls);
+}
+
+#if 0
+static void eventfuncstat(LexState *ls, int line) 
+{
+	/* funcstat -> EVENT funcname */
+	char event_name[256];
+	int ismethod;
+	expdesc v, b;
+
+	luaX_next(ls);  /* skip EVENT */
+
+	ismethod = funcname(ls, &v);
+
+
+	eventbody(ls, &b, ismethod, line, "event_name");
+
+	luaK_storevar(ls->fs, &v, &b);
+	luaK_fixline(ls->fs, line);  /* definition `happens' in the first line */
+
+}
+#endif
+
+#if 0
+/* eventstat -> EVENT funcname */
+static void eventstat (LexState *ls, int line) 
+{
+	TString *funcname;
+	TString *arg_str;
+	FuncState new_fs;
+	BlockCnt bl;
+	FuncState *fs = ls->fs;
+	expdesc v, b, c, t;
+	expdesc args;
+	char *f_name;
+
+	/* This function will create a a global function <funcname> which calls every function listed in the "_EVENT.<event hash>" table with the [single object] argument provided. */
+
+	enterlevel(ls);
+	eventfuncstat(ls, line);
+	ls->fs->freereg = ls->fs->nactvar;  /* free registers */
+	leavelevel(ls);
+
+}
+#endif
+static void localeventfunc (LexState *ls) {
+  expdesc b;
+  expdesc v;
+  FuncState *fs = ls->fs;
+	TString *tstr;
+	char event_name[256];
+
+	/* function name */
+	//ismethod = funcname(ls, &v);
+	
+	{
+		tstr = str_checkname(ls);
+		FuncState *fs = ls->fs;
+		if (singlevaraux(fs, tstr, &v, 1) == VVOID) {  /* global name? */
+			expdesc key;
+
+			singlevaraux(fs, ls->envn, &v, 1);  /* get environment variable */
+			codestring(ls, &key, tstr);  /* key is variable name */
+			luaK_indexed(fs, &v, &key);  /* env[varname] */
+		}
+	}
+
+	memset(event_name, 0, sizeof(event_name));
+	strncpy(event_name, getstr(tstr), sizeof(event_name)-1);
+	new_localvar(ls, tstr);
+  //new_localvarliteral(ls, "param");
+  adjustlocalvars(ls, 1);  /* enter its scope */
+
+  eventbody(ls, &b, 0, ls->linenumber, event_name);  /* function created in next register */
+
+
+  /* debug information will only see the variable after this point! */
+  getlocvar(fs, b.u.info)->startpc = fs->pc;
+}
 
 static void exprstat (LexState *ls) {
   /* stat -> func | assignment */
@@ -1516,8 +1843,53 @@ static void retstat (LexState *ls) {
   testnext(ls, ';');  /* skip optional semicolon */
 }
 
+#if 0
+static void exprpublicstat (LexState *ls) 
+{
+  lua_State *L = ls->L;
+  TString *varname = str_checkname(ls);
+	const char *f_name;
+		int is_env_nil;
+	int is_new;
 
-static void statement (LexState *ls) {
+#if 0
+expdesc key;
+singlevaraux (fs, ls->envn, v, 1);	/* get environment variable */
+lua_assert (v->k == VLOCAL || v->k == VUPVAL);
+codestring (ls, &key, prefix);	/* key is variable name */
+luaK_indexed (fs, v, &key);	/* env[varname] */
+#endif
+
+
+	f_name = getstr(varname);
+
+	lua_getglobal(L, PUBLIC_ENV);
+	is_env_nil = lua_isnil(L, -1);
+	
+	is_new = TRUE;
+	if (!is_env_nil) {
+		lua_getfield(L, -1, f_name);
+		is_new = lua_isnil(L, -1);
+	}
+
+	/* push value into environment */
+	lua_setglobal(L, f_name);
+
+	if (is_new) {
+		/* register in public table */
+		if (is_env_nil)
+			lua_newtable(L);
+		lua_pushstring(L, f_name);
+		lua_pushboolean(L, FALSE);
+		lua_settable(L, -3);
+		lua_setglobal(L, PUBLIC_ENV);
+	}
+
+}
+#endif
+
+static void statement(LexState *ls) 
+{
   int line = ls->linenumber;  /* may be needed for error messages */
   enterlevel(ls);
   switch (ls->t.token) {
@@ -1574,6 +1946,19 @@ static void statement (LexState *ls) {
       gotostat(ls, luaK_jump(ls->fs));
       break;
     }
+#if 0
+		case TK_PUBLIC:
+			/* a persistent function or variable stored publically */
+      luaX_next(ls); /* skip PUBLIC */
+			exprpublicstat(ls);
+			break;
+#endif
+		case TK_EVENT:
+			/* always references a function */
+      //eventstat(ls, line);
+      luaX_next(ls); /* skip EVENT */
+			localeventfunc(ls);
+			break;
     default: {  /* stat -> func | assignment */
       exprstat(ls);
       break;
@@ -1617,4 +2002,11 @@ Proto *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff,
 
   return (proto);
 }
+
+
+
+
+
+
+
 

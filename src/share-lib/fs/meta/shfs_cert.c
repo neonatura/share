@@ -155,7 +155,7 @@ int shfs_cert_verify_path(char *exec_path)
     return (SHERR_ISDIR);
   }
   if (err) {
-    err = -errno;
+    err = errno2sherr();
     PRINT_ERROR(err, exec_path);
     return (err);
   }

@@ -514,7 +514,7 @@ size_t shfs_avail(void)
   memset(&fs, 0, sizeof(fs));
   err = statvfs(get_libshare_path(), &fs);
   if (err)
-    return (-errno);
+    return (errno2sherr());
 
   if (fs.f_bsize == 0)
     return (SHERR_OPNOTSUPP);

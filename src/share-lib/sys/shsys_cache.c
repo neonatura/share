@@ -101,8 +101,8 @@ int shcache_read(const char *tag, shbuf_t *buff)
   dir_path = dirname(pbuf);
   err = stat(dir_path, &st);
   if (err) {
-    return (-errno);
-}
+    return (errno2sherr());
+	}
 
   if (st.st_atime < expire_t) {
     /* entire directory is expired */
@@ -112,7 +112,7 @@ int shcache_read(const char *tag, shbuf_t *buff)
 
   err = stat(path, &st);
   if (err)
-    return (-errno);
+    return (errno2sherr());
 
   if (st.st_mtime < expire_t) {
     /* cache entry is expired */

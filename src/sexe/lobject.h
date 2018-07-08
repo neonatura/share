@@ -361,44 +361,40 @@ typedef struct lua_TValue TValue;
 /* }====================================================== */
 
 
-
 /*
-** {======================================================
-** types and prototypes
-** =======================================================
-*/
+ ** {======================================================
+ ** types and prototypes
+ ** =======================================================
+ */
 
 
 union Value {
-  GCObject *gc;    /* collectable objects */
-  void *p;         /* light userdata */
-  int b;           /* booleans */
-  lua_CFunction f; /* light C functions */
-  numfield         /* numbers */
+	GCObject *gc;    /* collectable objects */
+	void *p;         /* light userdata */
+	int b;           /* booleans */
+	lua_CFunction f; /* light C functions */
+	numfield         /* numbers */
 };
 
 
 struct lua_TValue {
-  TValuefields;
+	TValuefields;
 };
 
 
 typedef TValue *StkId;  /* index to stack elements */
 
-
-
-
 /*
-** Header for string value; string bytes follow the end of this structure
-*/
+ ** Header for string value; string bytes follow the end of this structure
+ */
 typedef union TString {
-  L_Umaxalign dummy;  /* ensures maximum alignment for strings */
-  struct {
-    CommonHeader;
-    lu_byte reserved;
-    unsigned int hash;
-    size_t len;  /* number of characters in string */
-  } tsv;
+	L_Umaxalign dummy;  /* ensures maximum alignment for strings */
+	struct {
+		CommonHeader;
+		lu_byte reserved;
+		unsigned int hash;
+		size_t len;  /* number of characters in string */
+	} tsv;
 } TString;
 
 
@@ -408,119 +404,118 @@ typedef union TString {
 /* get the actual string (array of bytes) from a Lua value */
 #define svalue(o)       getstr(rawtsvalue(o))
 
-
 /*
-** Header for userdata; memory area follows the end of this structure
-*/
+ ** Header for userdata; memory area follows the end of this structure
+ */
 typedef union Udata {
-  L_Umaxalign dummy;  /* ensures maximum alignment for `local' udata */
-  struct {
-    CommonHeader;
-    struct Table *metatable;
-    struct Table *env;
-    size_t len;  /* number of bytes */
-  } uv;
+	L_Umaxalign dummy;  /* ensures maximum alignment for `local' udata */
+	struct {
+		CommonHeader;
+		struct Table *metatable;
+		struct Table *env;
+		size_t len;  /* number of bytes */
+	} uv;
 } Udata;
 
 
-
 /*
-** Description of an upvalue for function prototypes
-*/
+ ** Description of an upvalue for function prototypes
+ */
 typedef struct Upvaldesc {
-  TString *name;  /* upvalue name (for debug information) */
-  lu_byte instack;  /* whether it is in stack */
-  lu_byte idx;  /* index of upvalue (in stack or in outer function's list) */
+	TString *name;  /* upvalue name (for debug information) */
+	lu_byte instack;  /* whether it is in stack */
+	lu_byte idx;  /* index of upvalue (in stack or in outer function's list) */
 } Upvaldesc;
 
 
 /*
-** Description of a local variable for function prototypes
-** (used for debug information)
-*/
+ ** Description of a local variable for function prototypes
+ ** (used for debug information)
+ */
 typedef struct LocVar {
-  TString *varname;
-  int startpc;  /* first point where variable is active */
-  int endpc;    /* first point where variable is dead */
+	TString *varname;
+	int startpc;  /* first point where variable is active */
+	int endpc;    /* first point where variable is dead */
 } LocVar;
 
 
 /*
-** Function Prototypes
-*/
+ ** Function Prototypes
+ */
 typedef struct Proto {
-  CommonHeader;
-  TValue *k;  /* constants used by the function */
-  Instruction *code;
-  struct Proto **p;  /* functions defined inside the function */
-  int *lineinfo;  /* map from opcodes to source lines (debug information) */
-  LocVar *locvars;  /* information about local variables (debug information) */
-  Upvaldesc *upvalues;  /* upvalue information */
-  union Closure *cache;  /* last created closure with this prototype */
-  TString  *source;  /* used for debug information */
-  int sizeupvalues;  /* size of 'upvalues' */
-  int sizek;  /* size of `k' */
-  int sizecode;
-  int sizelineinfo;
-  int sizep;  /* size of `p' */
-  int sizelocvars;
-  int linedefined;
-  int lastlinedefined;
-  GCObject *gclist;
-  lu_byte numparams;  /* number of fixed parameters */
-  lu_byte is_vararg;
-  lu_byte maxstacksize;  /* maximum stack used by this function */
-  char mod_name[32];
+	CommonHeader;
+	TValue *k;  /* constants used by the function */
+	Instruction *code;
+	struct Proto **p;  /* functions defined inside the function */
+	int *lineinfo;  /* map from opcodes to source lines (debug information) */
+	LocVar *locvars;  /* information about local variables (debug information) */
+	Upvaldesc *upvalues;  /* upvalue information */
+	union Closure *cache;  /* last created closure with this prototype */
+	TString  *source;  /* used for debug information */
+	int sizeupvalues;  /* size of 'upvalues' */
+	int sizek;  /* size of `k' */
+	int sizecode;
+	int sizelineinfo;
+	int sizep;  /* size of `p' */
+	int sizelocvars;
+	int linedefined;
+	int lastlinedefined;
+	GCObject *gclist;
+	lu_byte numparams;  /* number of fixed parameters */
+	lu_byte is_vararg;
+	uint32_t maxstacksize;  /* maximum stack used by this function */
+	char mod_name[32];
 } Proto;
 
 
 
 /*
-** Lua Upvalues
-*/
+ ** Lua Upvalues
+ */
 typedef struct UpVal {
-  CommonHeader;
-  TValue *v;  /* points to stack or to its own value */
-  union {
-    TValue value;  /* the value (when closed) */
-    struct {  /* double linked list (when open) */
-      struct UpVal *prev;
-      struct UpVal *next;
-    } l;
-  } u;
+	CommonHeader;
+	TValue *v;  /* points to stack or to its own value */
+	union {
+		TValue value;  /* the value (when closed) */
+		struct {  /* double linked list (when open) */
+			struct UpVal *prev;
+			struct UpVal *next;
+		} l;
+	} u;
 } UpVal;
 
 
 /*
-** Closures
-*/
+ ** Closures
+ */
 
 #define ClosureHeader \
 	CommonHeader; lu_byte isC; lu_byte nupvalues; GCObject *gclist
 
 typedef struct CClosure {
-  ClosureHeader;
-  lua_CFunction f;
-  TValue upvalue[1];  /* list of upvalues */
+	ClosureHeader;
+	lua_CFunction f;
+	TValue upvalue[1];  /* list of upvalues */
 } CClosure;
 
 
 typedef struct LClosure {
-  ClosureHeader;
-  struct Proto *p;
-  UpVal *upvals[1];  /* list of upvalues */
+	ClosureHeader;
+	struct Proto *p;
+	UpVal *upvals[1];  /* list of upvalues */
 } LClosure;
 
 
 typedef union Closure {
-  CClosure c;
-  LClosure l;
+	CClosure c;
+	LClosure l;
 } Closure;
 
 
 #define isLfunction(o)	ttisLclosure(o)
 
 #define getproto(o)	(clLvalue(o)->p)
+
 
 
 /*

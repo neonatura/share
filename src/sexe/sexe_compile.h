@@ -36,5 +36,7 @@ void SexePrintCode(const Proto* f);
 
 void SexeDumpFunction(const Proto* f, DumpState* D);
 
+Proto *sexe_compile(lua_State *L, int argc, char **argv);
+
 
 #endif /* ndef __SEXE__SEXE_COMPILE_H__ */

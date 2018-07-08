@@ -129,6 +129,7 @@ extern "C" {
 #include "timespec.h"
 #include "utimens.h"
 
+
 #ifndef WINDOWS
 
 #if defined(HAVE_LIBPTHREAD) && defined(HAVE_PTHREAD_MUTEX_INIT) && defined(HAVE_PTHREAD_MUTEX_LOCK) && defined(HAVE_PTHREAD_MUTEX_UNLOCK)
@@ -137,22 +138,18 @@ extern "C" {
 
 #endif
 
-
 /* sys/param.h */
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 128
 #endif
 
-#endif
-
-
-
+#endif /* ndef WINDOWS */
 
 
 /**
  *
  *  @brief The Share Library
- *  @note The Share Library is hosted at https://github.com/neonatura/share
+ *  @note The Share Library source code is hosted at "https://github.com/neonatura/share".
  *  @defgroup libshare 
  *  @{
  */
@@ -202,7 +199,7 @@ extern "C" {
  */
 #define SHARE_DEFAULT_EXPIRE_TIME 1514743200 /* 48 years */ 
 
-#define MAX_SHARE_SESSION_TIME 10368000 /* 40 months (3.3 years) */
+#define MAX_SHARE_SESSION_TIME 10368000 /* 120 days / 4 mo. */
 
 /**
  * A specification of byte size.
@@ -218,8 +215,7 @@ typedef uint64_t shsize_t;
  */
 typedef long double shnum_t;
 
-
-
+/* supplemental libshare headers */
 #include "sherr.h"
 #include "shtime.h"
 #include "shcrc.h"
@@ -230,13 +226,6 @@ typedef long double shnum_t;
 #include "shnet.h"
 #include "shsys.h"
 
-
-//const char *get_libshare_account_email(void);
-
-/**
- * An email address where bug reports can be submitted.
- */
-char *get_libshare_email(void);
 
 /**
  * The current libshare library version.
@@ -644,5 +633,4 @@ int shclose(int fd);
 
 
 #endif /* ndef __SHARE_H__ */
-
 

@@ -23,6 +23,7 @@
  *  @endcopyright
  */
 
+#define __SHARE_C__
 #include "share.h"
 #include <math.h>
 #ifdef HAVE_GETPWUID
@@ -33,11 +34,6 @@ static const char *_crc_str_map = "-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqr
 
 static shpeer_t _default_peer;
 
-
-char *get_libshare_email(void)
-{
-  return (PACKAGE_BUGREPORT);
-}
 
 char *get_libshare_version(void)
 {
@@ -396,6 +392,14 @@ uint64_t shcrc(void *data, size_t data_len)
   ret_val += ((b << 32) | a);
   ret_val = htonll(ret_val);
   return (ret_val);
+}
+char *shcrc_hex(void *data, size_t data_len)
+{
+	static char ret_str[64];
+	uint64_t crc = shcrc(data, data_len);
+	uint32_t *i_val = &crc;
+	sprintf(ret_str, "%-8.8x%-8.8x", i_val[0], i_val[1]);
+	return (ret_str);
 }
 _TEST(shcrc)
 {
@@ -1500,6 +1504,58 @@ int shnum_sign(shnum_t v)
 }
 #undef __SHNUM__
 
+
+#define __SHERR__
+int stderr2sherr(int std_err)
+{
+	int i;
+
+	/* all "system error codes" are negative */
+	if (std_err <= 0)
+		return (std_err);
+
+	for (i = 0; _share_stderr_table[i].code != 0; i++) {
+		if (_share_stderr_table[i].code == std_err)
+			return (_share_stderr_table[i].err);
+	}
+
+	return (SHERR_UNKNOWN);
+}
+int sherr2stderr(int sh_err)
+{
+	int i;
+
+	/* all "share error codes" are negative */
+	if (sh_err >= 0)
+		return (sh_err);
+
+	for (i = 0; _share_stderr_table[i].code != 0; i++) {
+		if (_share_stderr_table[i].err == sh_err)
+			return (_share_stderr_table[i].code);
+	}
+
+	/* return what was provided */
+	return (sh_err);
+}
+int errno2sherr(void)
+{
+	return (stderr2sherr(errno));
+}
+const char *sherrstr(int sh_err)
+{
+	int err_code;
+
+	if (sh_err == 0) {
+		return ("Success");
+	}
+
+	/* shcode -> syscode */
+	if (sh_err < 0)
+		sh_err = sherr2stderr(sh_err);
+
+  return (strerror(sh_err));
+}
+#undef __SHERR__
 
 #if 0
 typedef uint64_t shbit_t;

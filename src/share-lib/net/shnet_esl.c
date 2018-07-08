@@ -400,7 +400,7 @@ int esl_accept(int sk)
 
   l_sk = shnet_accept(sk);
   if (l_sk < 0)
-    return (-errno);
+    return (errno2sherr());
 
   shnet_fcntl(l_sk, F_SETFL, O_NONBLOCK);
 

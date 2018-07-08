@@ -1,5 +1,4 @@
 
-
 /*
  * @copyright
  *
@@ -86,7 +85,7 @@ int shfs_ext_set(shfs_ino_t *file, const char *path)
 
   err = stat(path, &st);
   if (err) {
-    return (-errno);
+    return (errno2sherr());
 }
 
   ext = shfs_inode(file, NULL, SHINODE_EXTERNAL);

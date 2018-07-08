@@ -65,14 +65,18 @@ const char *shpref_get(char *pref, char *default_value);
 int shpref_set(char *pref, char *value);
 
 /* libshare time measurement */
+double shtimef(shtime_t stamp);
 shtime_t shtime(void);
+shtime_t shtimeu(time_t unix_t);
+int shtimems(shtime_t t);
 char *shctime(shtime_t t);
 time_t shutime(shtime_t t);
-shtime_t shtimeu(time_t unix_t);
 char *shstrtime(shtime_t t, char *fmt);
 shtime_t shtime_adj(shtime_t stamp, double secs);
-int shtimems(shtime_t);
-
+shtime_t shgettime(struct timeval *tv);
+int shtime_after(shtime_t stamp, shtime_t cmp_stamp);
+int shtime_before(shtime_t stamp, shtime_t cmp_stamp);
+double shtime_diff(shtime_t stamp, shtime_t cmp_stamp);
 
 /* libshare memory buffer */
 void shbuf_append(shbuf_t *from_buff, shbuf_t *to_buff);

@@ -37,9 +37,8 @@ int shnet_accept(int sockfd)
   memset(&peer_addr, 0, sizeof(peer_addr));
   sk = accept(sockfd, &peer_addr, &peer_len);
   if (sk == -1) {
-//fprintf(stderr, "DEBUG: shnet_accept: sockfd (%d) accept errno %d\n", sockfd, -errno);
-    return (-errno);
-}
+    return (errno2sherr());
+	}
 
   usk = (unsigned int)sk;
   src_len = sizeof(_sk_table[usk].addr_src);

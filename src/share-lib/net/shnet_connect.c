@@ -32,7 +32,7 @@ int shconnect(int sk, struct sockaddr *skaddr, socklen_t skaddr_len)
 
   err = connect(sk, skaddr, skaddr_len);
   if (err == -1 && errno != EINPROGRESS)
-    return (-errno);
+    return (errno2sherr());
 
   
   len = sizeof(_sk_table[usk].addr_src);
@@ -69,7 +69,7 @@ int shconnect_peer(shpeer_t *peer, int flags)
 
   fd = shnet_sk();
   if (fd == -1)
-    return (-errno);
+    return (errno2sherr());
 
   if (flags & SHNET_CONNECT) {
     shnet_fcntl(fd, F_SETFL, O_NONBLOCK);

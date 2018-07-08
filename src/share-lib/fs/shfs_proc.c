@@ -99,10 +99,10 @@ int shfs_proc_lock(char *process_path, char *runtime_mode)
     cur_pid = *pid_p;
   if (cur_pid) {
     if (kill(cur_pid, 0) != 0) {
-      int err = -errno;
+      int err = errno2sherr();
       if (err != SHERR_SRCH) {
         sprintf(buf, "shfs_proc_lock [signal verify (pid %d)]", (unsigned int)cur_pid);
-        PRINT_ERROR(-errno, buf); 
+        PRINT_ERROR(err, buf); 
       }
       cur_pid = 0;
     }

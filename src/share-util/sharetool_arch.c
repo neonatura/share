@@ -121,7 +121,6 @@ int sharetool_archive_append_file(shz_t *z, char *path)
 
   err = shz_file_add(z, path);
   if (err) {
-fprintf(stderr, "DEBUG: sharetool_archive_append_file: '%s'\n", path);
     return (err);
   }
 
@@ -171,16 +170,13 @@ int sharetool_archive_append_r(shz_t *z, char *path)
       sprintf(d_path, "%s/%s", path, ent->d_name);
       err = sharetool_archive_append_r(z, d_path);
       if (err) {
-fprintf(stderr, "DEBUG: %d = sharetool_archive_append: '%s'\n", err, d_path);
         closedir(dir);
         return (err);
       }
     }
 
     closedir(dir);
-  } else {
-fprintf(stderr, "DEBUG: st_mode %d\n", st.st_mode);
-}
+	}
  
   return (0);
 }
@@ -232,8 +228,7 @@ int sharetool_archive(char **args, int arg_cnt)
     for (idx = 2; idx < arg_cnt; idx++) {
       err = sharetool_archive_append(z, args[idx]);
       if (err) {
-fprintf(stderr, "DEBUG: error: %s: %s\n", args[idx], sherrstr(err));
-
+//fprintf(stderr, "DEBUG: error: %s: %s\n", args[idx], sherrstr(err));
         if (!(run_flags & PFLAG_IGNORE)) {
           /* abort upon first error */
           shz_free(&z);

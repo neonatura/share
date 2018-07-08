@@ -33,7 +33,19 @@ static shmime_t _share_default_mime_types[MAX_DEFAULT_SHARE_MIME_TYPES] = {
   { SHMIME_APP_PEM, "\\.pem", "cert/pem", "-----BEGIN", 10 }, /* base64 */
   { SHMIME_APP_SQLITE, "\\.db3", "db", "SQLite format 3\x01", 16 }, /* sqlite3 */
   { SHMIME_APP_SEXE, "\\.sx", "bin/sexe", "\033sEX", 4 }, /* SEXE */
+
+	{ SHMIME_APP_BZ2, "\\.bz2", "arch/bz2", "\102\132\150\071\061\101\131\046", 8 }, /* BZIP2 */
+	{ SHMIME_APP_RAR, "\\.rar", "arch/rar", "Rar\!", 4 }, /* RAR */
+	{ SHMIME_APP_ZIP, "\\.zip", "arch/zip", "\120\113\003\004", 4 }, /* ZIP */
+	{ SHMIME_APP_XZ, "\\.xz", "arch/xz", "\xFD" "7zXZ", 5 }, /* XZ */
+	{ SHMIME_APP_WIN, "\\.exe", "bin/win", "MZ.*PE\000\000", 1024 }, /* EXE */
+
+	/* media */
+	{ SHMIME_IMG_GIF, "\\.gif", "media/gif", "GIF89a", 5 }, /* GIF */
+	{ SHMIME_IMG_PNG, "\\.png", "media/png", "\211PNG\015\012\032\012", 8 }, /* PNG */
+	{ SHMIME_IMG_JPEG, "\\.jpg", "media/jpeg", "\377\330\377\341", 4 } /* JPEG */
 };
+
 #define BLANK_MIME_TYPE (&_share_default_mime_types[0])
 
 #if 0

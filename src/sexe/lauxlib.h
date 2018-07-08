@@ -179,12 +179,16 @@ LUALIB_API char *(luaL_buffinitsize) (lua_State *L, luaL_Buffer *B, size_t sz);
 ** after that initial structure).
 */
 
-#define LUA_FILEHANDLE          "FILE*"
+#define LUA_FILEHANDLE          "int"
 
 
-typedef struct luaL_Stream {
-  FILE *f;  /* stream (NULL for incompletely created streams) */
-  lua_CFunction closef;  /* to close stream (NULL for closed streams) */
+typedef struct luaL_Stream 
+{
+	/* file descriptor (-1 = not set) */
+	int fileno;
+
+	/* to close stream (NULL for closed streams) */
+  lua_CFunction closef;
 } luaL_Stream;
 
 /* }====================================================== */
@@ -200,6 +204,8 @@ LUALIB_API void (luaL_openlib) (lua_State *L, const char *libname,
                                 const luaL_Reg *l, int nup);
 
 #define luaL_register(L,n,l)	(luaL_openlib(L,(n),(l),0))
+
+const char *luaL_findtable (lua_State *L, int idx, const char *fname, int szhint) ;
 
 #endif
 

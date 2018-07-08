@@ -59,8 +59,7 @@ int shuser_inform(uint64_t uid)
 
 int shuser_create_priv(char *acc_name, shpriv_t *priv, shpriv_t **priv_p)
 {
-  shfs_t *fs;
-  shfs_ino_t *shadow_file;
+  shpam_t *pam;
   shbuf_t *buff;
   shkey_t *user_key;
   uint32_t mode;
@@ -68,15 +67,18 @@ int shuser_create_priv(char *acc_name, shpriv_t *priv, shpriv_t **priv_p)
   int qid;
   int err;
 
-  fs = NULL;
-  shadow_file = shpam_shadow_file(&fs);
+	pam = shpam_open_name(acc_name);
+  if (!pam)
+    return (SHERR_IO);
 
-  err = shpam_shadow_create(shadow_file, acc_name, priv, priv_p);
-  shfs_free(&fs);
-  if (err)
+  err = shpam_shadow_create(pam->file, acc_name, priv, priv_p);
+  if (err) {
+		shpam_close(&pam);
     return (err);
+	}
 
-  shuser_inform(shpam_uid(acc_name));
+  shuser_inform(pam->uid);
+	shpam_close(&pam);
 
   return (0);
 }
@@ -88,8 +90,7 @@ int shuser_create(char *acc_name, shpriv_t **priv_p)
 
 int shuser_login_2fa(char *acc_name, char *passphrase, uint32_t code_2fa, shpriv_t **priv_p)
 {
-  shfs_ino_t *shadow_file;
-  shfs_t *fs;
+	shpam_t *pam;
   int err;
 
   if (!acc_name)
@@ -98,13 +99,12 @@ int shuser_login_2fa(char *acc_name, char *passphrase, uint32_t code_2fa, shpriv
   if (!passphrase)
     passphrase = "";
 
-  fs = NULL;
-  shadow_file = shpam_shadow_file(&fs);
-  if (!shadow_file)
+	pam = shpam_open_name(acc_name);
+  if (!pam)
     return (SHERR_IO);
 
-  err = shpam_shadow_login(shadow_file, acc_name, code_2fa, (unsigned char *)passphrase, strlen(passphrase), priv_p);
-  shfs_free(&fs);
+  err = shpam_shadow_login(pam->file, acc_name, code_2fa, (unsigned char *)passphrase, strlen(passphrase), priv_p);
+  shpam_close(&pam);
   if (err)
     return (err);
 
@@ -118,44 +118,38 @@ int shuser_login(char *acc_name, char *passphrase, shpriv_t **priv_p)
 
 int shuser_pass_set(char *acc_name, shpriv_t *priv, char *passphrase)
 {
-  shfs_t *fs;
-  shfs_ino_t *shadow_file;
-  uint64_t uid;
+	shpam_t *pam;
   int err;
 
-  uid = shpam_uid(acc_name);
-
-  fs = NULL;
-  shadow_file = shpam_shadow_file(&fs);
-  if (!shadow_file)
+	pam = shpam_open_name(acc_name);
+  if (!pam)
     return (SHERR_IO);
 
-  err = shpam_shadow_pass_set(shadow_file, acc_name, priv,
+  err = shpam_shadow_pass_set(pam->file, acc_name, priv,
       (unsigned char *)passphrase, strlen(passphrase));
-  shfs_free(&fs);
-  if (err)
+  if (err) {
+		shpam_close(&pam);
     return (err);
+	}
 
-  shuser_inform(uid);
+  shuser_inform(pam->uid);
+	shpam_close(&pam);
 
   return (0);
 }
 
 int shuser_remove(char *acc_name, shpriv_t *priv)
 {
-  shfs_ino_t *shadow_file;
-  shfs_t *fs;
+	shpam_t *pam;
   uint64_t uid;
   int err;
 
-  fs = NULL;
-  shadow_file = shpam_shadow_file(&fs);
-  if (!shadow_file)
+	pam = shpam_open_name(acc_name);
+  if (!pam)
     return (SHERR_IO);
 
-  uid = shpam_uid(acc_name);
-  err = shpam_shadow_remove(shadow_file, uid, priv);
-  shfs_free(&fs);
+  err = shpam_shadow_remove(pam->file, pam->uid, priv);
+	shpam_close(&pam);
   if (err)
     return (err);
 
@@ -167,19 +161,15 @@ int shuser_remove(char *acc_name, shpriv_t *priv)
 
 int shuser_info(char *acc_name, int cmd, unsigned char *ret_data, size_t *ret_len_p)
 {
-  shfs_t *fs;
-  shfs_ino_t *shadow_file;
-  uint64_t uid;
+	shpam_t *pam;
   int err;
 
-  fs = NULL;
-  shadow_file = shpam_shadow_file(&fs);
-  if (!shadow_file)
+	pam = shpam_open_name(acc_name);
+  if (!pam)
     return (SHERR_IO);
 
-  uid = shpam_uid(acc_name);
-  err = shpam_shadow_get(shadow_file, uid, cmd, ret_data, ret_len_p);
-  shfs_free(&fs);
+  err = shpam_shadow_get(pam->file, pam->uid, cmd, ret_data, ret_len_p);
+	shpam_close(&pam);
   if (err)
     return (err);
 
@@ -188,19 +178,15 @@ int shuser_info(char *acc_name, int cmd, unsigned char *ret_data, size_t *ret_le
 
 int shuser_info_set(char *acc_name, shpriv_t *priv, int cmd, unsigned char *data, size_t data_len)
 {
-  shfs_t *fs;
-  shfs_ino_t *shadow_file;
-  uint64_t uid;
+	shpam_t *pam;
   int err;
 
-  fs = NULL;
-  shadow_file = shpam_shadow_file(&fs);
-  if (!shadow_file)
+	pam = shpam_open_name(acc_name);
+  if (!pam)
     return (SHERR_IO);
 
-  uid = shpam_uid(acc_name);
-  err = shpam_shadow_set(shadow_file, uid, priv, cmd, data, data_len); 
-  shfs_free(&fs);
+  err = shpam_shadow_set(pam->file, pam->uid, priv, cmd, data, data_len); 
+	shpam_close(&pam);
   if (err)
     return (err);
   
@@ -209,62 +195,52 @@ int shuser_info_set(char *acc_name, shpriv_t *priv, int cmd, unsigned char *data
 
 shjson_t *shuser_json(char *acc_name)
 {
-  shfs_t *fs;
-  shfs_ino_t *shadow_file;
+	shpam_t *pam;
   shjson_t *ret_json;
-  uint64_t uid;
   int err;
 
-  fs = NULL;
-  shadow_file = shpam_shadow_file(&fs);
-  if (!shadow_file)
+	pam = shpam_open_name(acc_name);
+  if (!pam)
     return (NULL);
 
-  uid = shpam_uid(acc_name);
-  ret_json = shpam_shadow_json(shadow_file, uid);
-  shfs_free(&fs);
+  ret_json = shpam_shadow_json(pam->file, pam->uid);
+	shpam_close(&pam);
 
   return (ret_json);
 }
 
 int shuser_verify(char *acc_name)
 {
-  shfs_t *fs;
-  shfs_ino_t *shadow_file;
-  uint64_t uid;
+	shpam_t *pam;
   int err;
 
-  fs = NULL;
-  shadow_file = shpam_shadow_file(&fs);
-  if (!shadow_file)
+	pam = shpam_open_name(acc_name);
+	if (!pam)
     return (SHERR_IO);
 
-  uid = shpam_uid(acc_name);
-  err = shpam_shadow_uid_verify(shadow_file, uid);
-  shfs_free(&fs);
+  err = shpam_shadow_uid_verify(pam->file, pam->uid);
+  shpam_close(&pam);
   if (err)
     return (err);
 
   return (0);
 }
 
-int shuser_admin_default(shpriv_t **priv_p)
+int shuser_admin_default(char *acc_name, shpriv_t **priv_p)
 {
-  shfs_t *fs;
-  shfs_ino_t *shadow_file;
+	shpam_t *pam;
   shpriv_t *priv;
   int err;
 
   if (priv_p)
     *priv_p = NULL;
 
-  fs = NULL;
-  shadow_file = shpam_shadow_file(&fs);
-  if (!shadow_file)
+	pam = shpam_open_name(acc_name);
+	if (!pam)
     return (SHERR_IO);
 
-  priv = shpam_shadow_admin_default(shadow_file);
-  shfs_free(&fs);
+  priv = shpam_shadow_admin_default(pam->file);
+  shpam_close(&pam);
   if (!priv)
     return (SHERR_ACCESS);
 
@@ -284,11 +260,12 @@ _TEST(shuser_login)
   int err;
 
   /* get admin account in order to create test account. */
-  err = shuser_admin_default(&priv);
+  err = shuser_admin_default("test", &priv);
   _TRUE(err == 0);
 
   /* create test account */
   err = shuser_create_priv("test", priv, &test_priv);
+if (err) fprintf(stderr, "DEBUG: %d = shuser_create_priv('test')\n", err);
   _TRUE(err == 0);
 
   /* set password on behalf of user */
@@ -310,8 +287,6 @@ _TEST(shuser_login)
 
   free(test_priv);
   free(priv);
-
-  return (0);
 
 }
 

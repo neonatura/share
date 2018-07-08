@@ -30,18 +30,15 @@
 
 
 
+/**
+ * Trigger a event to be handled with the object provided.
+ */
+int sexe_event_handle(lua_State *L, char *e_name, shjson_t *json);
 
-typedef struct sexe_event_t {
-  const char mod_name[MAX_SEXE_NAME_LENGTH];
-  shkey_t reg_key;
-  uint32_t event_type;
-} sexe_event_t;
+shkey_t *sexe_event_key(char *e_name);
 
-
-int sexe_event_remove(lua_State *L, int e_type, char *e_name);
-
-int sexe_event_handle(lua_State *L, int e_type, shjson_t *json);
-int sexe_event_call(lua_State *L, const char *f_name, int e_type, shjson_t *json);
+unsigned int sexe_event_next_id(void);
 
 
 #endif /* ndef __SEXE__SEXE_EVENT_H__ */
+

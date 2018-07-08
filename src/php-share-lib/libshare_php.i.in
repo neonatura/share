@@ -4,7 +4,6 @@
 #include "share.h"
 %}
 int test_main(void);
-char *get_libshare_email(void);
 char *get_libshare_version(void);
 char *get_libshare_title(void);
 const char *get_libshare_path(void);
@@ -17,11 +16,19 @@ const char *shpref_get(char *pref, char *default_value);
 int shpref_set(char *pref, char *value);
 
 /* Time Management */
+double shtimef(shtime_t stamp);
 shtime_t shtime(void);
+shtime_t shtimeu(time_t unix_t);
+int shtimems(shtime_t t);
 char *shctime(shtime_t t);
 time_t shutime(shtime_t t);
-shtime_t shtimeu(time_t unix_t);
 char *shstrtime(shtime_t t, char *fmt);
+shtime_t shtime_adj(shtime_t stamp, double secs);
+shtime_t shgettime(struct timeval *tv);
+int shtime_after(shtime_t stamp, shtime_t cmp_stamp);
+int shtime_before(shtime_t stamp, shtime_t cmp_stamp);
+shtime_t shmktime(struct tm *tm);
+double shtime_diff(shtime_t stamp, shtime_t cmp_stamp);
 
 int shmsgget(shpeer_t *peer);
 int shmsgsnd(int msqid, const void *msgp, size_t msgsz);

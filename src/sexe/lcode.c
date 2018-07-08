@@ -258,7 +258,7 @@ void luaK_checkstack (FuncState *fs, int n) {
   if (newstack > fs->f->maxstacksize) {
     if (newstack >= MAXSTACK)
       luaX_syntaxerror(fs->ls, "function or expression too complex");
-    fs->f->maxstacksize = cast_byte(newstack);
+    fs->f->maxstacksize = newstack;//cast_byte(newstack);
   }
 }
 

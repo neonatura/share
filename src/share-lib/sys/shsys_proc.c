@@ -197,7 +197,7 @@ uint64_t shproc_rlim(int mode)
   memset(&rlim, 0, sizeof(rlim));
   err = getrlimit(mode, &rlim);
   if (err == -1)
-    return (-errno);
+    return (errno2sherr());
 
   return (rlim.rlim_cur);
 }
@@ -243,7 +243,7 @@ static int shproc_fork(shproc_t *proc)
     case -1:
       /* fork failure */
       shproc_state_set(proc, SHPROC_NONE);
-      return (-errno);
+      return (errno2sherr());
 
     default:
       /* parent process */
@@ -370,7 +370,7 @@ int shproc_read_wait(shproc_t *proc, int wait_t)
   err = select(proc->proc_fd+1, &in_set, NULL, NULL, 
       !wait_t ? NULL /* blocking poll */ : &to /* semi-blocking */);
   if (err < 0)
-    return (-errno);
+    return (errno2sherr());
 
   return (0);
 }
@@ -392,7 +392,7 @@ int shproc_write_wait(shproc_t *proc, int wait_t)
   FD_SET(proc->proc_fd, &out_set);
   err = select(proc->proc_fd+1, NULL, &out_set, NULL, &to); 
   if (err < 0)
-    return (-errno);
+    return (errno2sherr());
 
   return (0);
 }
@@ -407,7 +407,7 @@ static int shproc_write(shproc_t *proc, shproc_req_t *req)
   req->crc = shcrc(shbuf_data(proc->proc_buff), shbuf_size(proc->proc_buff));
   err = write(proc->proc_fd, req, sizeof(shproc_req_t));
   if (err == -1) 
-    return (-errno);
+    return (errno2sherr());
   if (err == 0)
     return (SHERR_AGAIN);
 
@@ -425,7 +425,7 @@ static int shproc_write(shproc_t *proc, shproc_req_t *req)
         shbuf_data(proc->proc_buff) + of, 
         shbuf_size(proc->proc_buff) - of);
     if (w_len == -1)
-      return (-errno);
+      return (errno2sherr());
     if (w_len == 0)
       return (SHERR_AGAIN);
 
@@ -454,7 +454,7 @@ int shproc_write_fd(shproc_t *proc, int fd)
 
   err = sendmsg(proc->dgram_fd, &parent_msg, 0);
   if (err == -1)
-    return (-errno);
+    return (errno2sherr());
 
   return (0);
 }
@@ -527,7 +527,7 @@ static int shproc_read(shproc_t *proc)
   memset(&req, 0, sizeof(req));
   r_len = read(proc->proc_fd, &req, sizeof(req));
   if (r_len == -1 && errno != EAGAIN) {
-    return (-errno);
+    return (errno2sherr());
   }
   if (r_len != sizeof(req))
     return (1); /* nothing to read */
@@ -552,7 +552,7 @@ static int shproc_read(shproc_t *proc)
   for (of = 0; of < req.data_len; of += r_len) {
     r_len = read(proc->proc_fd, buf, MIN(req.data_len-of, sizeof(buf)));
     if (r_len == -1)
-      return (-errno);
+      return (errno2sherr());
     if (r_len == 0)
       return (SHERR_AGAIN);
 
@@ -576,7 +576,7 @@ int shproc_parent_poll(shproc_t *proc)
     return (SHERR_INVAL);
 
   if (0 != kill(proc->proc_pid, 0)) {
-    err = -errno;
+    err = errno2sherr();
     shproc_stop(proc);
     return (err);
   }

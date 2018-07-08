@@ -25,12 +25,52 @@
 #include <sys/resource.h>
 #endif
 
+
 #define SHLOG_INFO 1
 #define SHLOG_WARNING 2
 #define SHLOG_ERROR 3
 #define SHLOG_RUSAGE 4
 
+#define MAX_FLUSH_SPAN 5
+
+
 static int _log_queue_id;
+
+static FILE *_shlog_file;
+
+static char _log_path[PATH_MAX+1];
+
+static int _log_level;
+
+
+int shlog_path_set(const char *path)
+{
+	struct stat st;
+
+	if (0 != stat(path, &st) && /* does not exist */ 
+			0 != mkdir(path, 0777)) /* cannot be made */
+		return (errno2sherr());
+
+	memset(_log_path, 0, sizeof(_log_path));
+	strncpy(_log_path, path, sizeof(_log_path)-1);
+	return (0);
+}
+
+const char *shlog_path(void)
+{
+
+	if (!*_log_path) {
+		/* default log directory */
+#ifdef WINDOWS
+		sprintf(_log_path, "%s\\share\\log\\", getenv("ProgramData"));
+#else
+		sprintf(_log_path, "/var/log/share/");
+#endif
+		mkdir(_log_path, 0777);
+	}
+
+	return ((const char *)_log_path);
+}
 
 static size_t shlog_mem_size(void)
 {
@@ -58,149 +98,6 @@ static size_t shlog_mem_size(void)
   return (mem_size);
 }
 
-#if 0
-int shlog(int level, int err_code, char *log_str)
-{
-  shbuf_t *buff;
-  char line[1024];
-  char *data;
-  size_t mem_size;
-  uint32_t type;
-  time_t now;
-  int err;
-
-#ifndef DEBUG
-  if (_log_queue_id <= 0) {
-    shpeer_t *log_peer;
-
-    /* friendly local log daemon */
-    log_peer = shpeer_init("shlogd", NULL);
-    _log_queue_id = shmsgget(log_peer);
-    shpeer_free(&log_peer);
-  }
-  if (_log_queue_id < 0)
-    return;
-#endif
-
-  err = 0;
-  now = time(NULL);
-  buff = shbuf_init();
-  if (level == SHLOG_ERROR) {
-    shbuf_catstr(buff, "Error: ");
-  } else if (level == SHLOG_WARNING) {
-    shbuf_catstr(buff, "Warning: ");
-  }
-  if (err_code) {
-    sprintf(line, "%s [code %d]: ", strerror(-(err_code)), (err_code));
-    shbuf_catstr(buff, line);
-  }
-  shbuf_catstr(buff, log_str);
-
-  mem_size = shlog_mem_size();
-  if (mem_size >= 1000) {
-    sprintf(line, " (mem:%dk)", (mem_size / 1000)); 
-    shbuf_catstr(buff, line);
-  }
-
-
-  data = shbuf_data(buff);
-#ifndef DEBUG
-  err = shmsgsnd(_log_queue_id, data, shbuf_size(buff));
-#else
-  fprintf(stderr, "%s %s\n", shstrtime(shtime(), "[%x %T]"), data);
-#endif
-
-  shbuf_free(&buff);
-  if (err)
-    return (err);
-
-  return (0);
-}
-#endif
-
-static FILE *_shlog_file;
-
-#if 0
-static shbuf_t *_shlog_buff;
-int shlog_init(shbuf_t **buff_p, size_t data_len)
-{
-  struct stat st;
-  char path[PATH_MAX+1];
-  char log_path[PATH_MAX+1];
-  char bin_path[PATH_MAX+1];
-  shbuf_t *buff;
-  shpeer_t peer;
-  size_t req_len;
-  time_t now;
-  int err;
-  int fd;
-
-  if (!buff_p)
-    return (SHERR_INVAL);
-
-  buff = *buff_p;
-  *buff_p = NULL;
-
-  if (!buff) {
-    memcpy(&peer, ashpeer(), sizeof(peer));
-  #ifdef WINDOWS
-    sprintf(path, "%s\\share\\log\\", getenv("APPDATA"));
-  #else
-    sprintf(path, "/var/log/share/");
-  #endif
-    mkdir(path, 0777);
-
-    if (!*peer.label)
-      strcat(path, PACKAGE_NAME);
-    else
-      strcat(path, peer.label);
-
-    now = time(NULL);
-    strcpy(bin_path, path);
-    strftime(bin_path+strlen(bin_path), 
-        sizeof(bin_path)-strlen(bin_path)-1, ".%y.%W", localtime(&now));
-
-    sprintf(log_path, "%s.log", path);
-    _shlog_file = fopen(log_path, "wb");
-
-    fd = open(bin_path, O_RDWR | O_CREAT, S_IRWXU);
-    if (fd == -1)
-      return (-errno);
-
-    buff = shbuf_init();
-    buff->fd = fd;
-
-    fstat(fd, &st);
-    req_len = MAX(SHARE_PAGE_SIZE, st.st_size);
-    err = shbuf_growmap(buff, req_len);
-    if (err) {
-      shbuf_free(&buff);
-      return (err);
-    }
-
-    buff->data_of = strlen(shbuf_data(buff));
-  }
-  req_len = shbuf_size(buff) + data_len + SHARE_PAGE_SIZE + 1;
-
-  if (req_len >= buff->data_max) {
-    req_len = (req_len / SHARE_PAGE_SIZE);
-    req_len *= SHARE_PAGE_SIZE;
-    if (req_len != buff->data_max) {
-      err = shbuf_growmap(buff, req_len);
-      if (err) {
-        shbuf_free(&buff);
-        return (err);
-      }
-    }
-    buff->data_of = strlen(shbuf_data(buff));
-  }
-
-  *buff_p = buff;
-
-  return (0);
-}
-#endif
-
 void shlog_write(shbuf_t *buff, int level, int err_code, char *log_str)
 {
   static char log_path[PATH_MAX+1];
@@ -213,21 +110,10 @@ void shlog_write(shbuf_t *buff, int level, int err_code, char *log_str)
 
   if (!*log_path) {
     shpeer_t peer;
-    char path[PATH_MAX+1];
 
     memcpy(&peer, ashpeer(), sizeof(peer));
-#ifdef WINDOWS
-    sprintf(path, "%s\\share\\log\\", getenv("ProgramData"));
-#else
-    sprintf(path, "/var/log/share/");
-#endif
-    mkdir(path, 0777);
-
-    if (!*peer.label)
-      strcat(path, PACKAGE_NAME);
-    else
-      strcat(path, peer.label);
-    sprintf(log_path, "%s.log", path);
+		sprintf(log_path, "%s%s.log", shlog_path(), 
+				(!*peer.label ? PACKAGE_NAME : peer.label));
   }
   if (*log_path && !_shlog_file) {
     _shlog_file = fopen(log_path, "ab");
@@ -260,7 +146,7 @@ void shlog_write(shbuf_t *buff, int level, int err_code, char *log_str)
 
   mem_size = shlog_mem_size();
   if (mem_size > 100000) {
-    sprintf(line, " (mem:%dk)", (mem_size / 1000)); 
+    sprintf(line, " (mem:%dm)", (mem_size / 1000)); 
     shbuf_catstr(buff, line);
   }
 
@@ -278,8 +164,6 @@ void shlog_free(void)
 
 }
 
-#define MAX_FLUSH_SPAN 5
-
 int shlog(int level, int err_code, char *log_str)
 {
   static time_t last_day;
@@ -288,6 +172,9 @@ int shlog(int level, int err_code, char *log_str)
   time_t day;
   time_t now;
   int err;
+
+	if (level < _log_level)
+		return (0);
 
   now = time(NULL);
   day = now / 86400; 
@@ -313,8 +200,6 @@ int shlog(int level, int err_code, char *log_str)
 
   return (0);
 }
-
-
 
 void sherr(int err_code, char *log_str)
 {
@@ -349,5 +234,15 @@ void shlog_rinfo(void)
 
   shinfo(rinfo_buf);
 #endif
+}
+
+void shlog_level_set(int level /* SHLOG_XXX */)
+{
+	_log_level = MAX(0, MIN(MAX_SHLOG_LEVEL - 1, level));
+}
+
+int shlog_level(void)
+{
+	return (_log_level);
 }
 

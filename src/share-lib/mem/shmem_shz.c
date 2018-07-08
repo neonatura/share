@@ -84,7 +84,7 @@ static inline int _shz_err(int code)
   } else if (code == Z_STREAM_ERROR) {
     ret_code = SHERR_IO;
   } else if (code == Z_ERRNO) {
-    ret_code = -errno;
+    ret_code = errno2sherr();
   } else if (code == Z_DATA_ERROR) {
     ret_code = SHERR_INVAL;
   } else if (code == Z_VERSION_ERROR) {
@@ -1263,7 +1263,7 @@ int shz_arch_fopen(shz_t *z, const char *path, int flags)
   err = stat(path, &st);
   if (err) {
     if (!(flags & SHZ_CREATE)) {
-      return (-errno);
+      return (errno2sherr());
     }
 
     flags |= SHZ_FRESH;

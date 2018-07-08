@@ -573,7 +573,7 @@ LUA_API void lua_pushcclosure (lua_State *L, lua_CFunction fn, int n) {
 }
 
 
-LUA_API void lua_pushboolean (lua_State *L, int b) {
+void lua_pushboolean (lua_State *L, int b) {
   lua_lock(L);
   setbvalue(L->top, (b != 0));  /* ensure that true is 1 */
   api_incr_top(L);

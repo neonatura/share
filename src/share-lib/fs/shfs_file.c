@@ -208,7 +208,7 @@ int shfs_file_pipe(shfs_ino_t *file, int fd)
     b_len = write(fd, buff->data + b_of, buff->data_of - b_of);
     if (b_len < 0) {
       shbuf_free(&buff);
-      return (-errno);
+      return (errno2sherr());
     }
 
     b_of += b_len;

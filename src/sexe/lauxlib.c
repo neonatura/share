@@ -493,6 +493,7 @@ LUALIB_API void luaL_addvalue (luaL_Buffer *B) {
 
 
 LUALIB_API void luaL_buffinit (lua_State *L, luaL_Buffer *B) {
+	memset(B, 0, sizeof(luaL_Buffer));
   B->L = L;
   B->b = B->initb;
   B->n = 0;
@@ -752,8 +753,8 @@ LUALIB_API const char *luaL_tolstring (lua_State *L, int idx, size_t *len) {
 */
 #if defined(LUA_COMPAT_MODULE)
 
-static const char *luaL_findtable (lua_State *L, int idx,
-                                   const char *fname, int szhint) {
+const char *luaL_findtable (lua_State *L, int idx, const char *fname, int szhint) 
+{
   const char *e;
   if (idx) lua_pushvalue(L, idx);
   do {

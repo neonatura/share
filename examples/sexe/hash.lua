@@ -1,5 +1,7 @@
 -- standard checksum algorythms
 
+require 'crypt'
+
 local val = arg[1]
 
 if (val == nil) then
@@ -7,10 +9,8 @@ if (val == nil) then
   return
 end
 
-local crc = crc32(val)
-local adler = adler32(val)
+local crc = crypt.crc(val)
 
-print("VALUE: " .. val)
-print("CRC32: " .. crc)
-print("ADLER32: " .. adler)
+println("VALUE: " .. val)
+println("CHECKSUM: " .. crc)
 

@@ -167,7 +167,7 @@ void print_process_usage(void)
   }
   if (process_run_mode == SHM_PAM) {
     printf(
-        "\t-s\t\t\tShow status information for an account.\n"
+        "\t-S\t\t\tShow status information for an account.\n"
 #if 0
         "\t-d\t\t\tDelete an account.\n"
         "\t-e\t\t\tExpire a session token for an account.\n"
@@ -433,9 +433,7 @@ void print_process_usage(void)
   }
 
   printf(
-      "Visit 'http://docs.sharelib.net/' for libshare API documentation.\n"
-      "Report bugs to <%s>.\n",
-      get_libshare_email()
+      "Visit 'http://sharelib.net/libshare/' for libshare API documentation.\n"
       );
 
 }

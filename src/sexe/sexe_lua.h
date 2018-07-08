@@ -1,13 +1,40 @@
+
 /*
-** $Id: lua.h,v 1.282 2011/11/29 15:55:08 roberto Exp $
-** Lua - A Scripting Language
-** Lua.org, PUC-Rio, Brazil (http://www.lua.org)
-** See Copyright Notice at the end of this file
-*/
+ * @copyright
+ *
+ *  Copyright 2014 Neo Natura
+ *
+ *  This file is part of the Share Library.
+ *  (https://github.com/neonatura/share)
+ *        
+ *  The Share Library is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version. 
+ *
+ *  The Share Library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with The Share Library.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  @endcopyright
+ *
+ *  @file sexe.h
+ *  @brief Utilities to compile and run SEXE bytecode.
+ *  @date 2014
+ *
+ */
+/*
+ ** $Id: lua.h,v 1.282 2011/11/29 15:55:08 roberto Exp $
+ ** Lua - A Scripting Language
+ ** Lua.org, PUC-Rio, Brazil (http://www.lua.org)
+ */
 
-
-#ifndef lua_h
-#define lua_h
+#ifndef __SEXE_LUA_H__
+#define __SEXE_LUA_H__
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -58,6 +85,7 @@
 
 
 typedef struct lua_State lua_State;
+typedef lua_State sexe_t;
 
 typedef int (*lua_CFunction) (lua_State *L);
 
@@ -415,31 +443,8 @@ struct lua_Debug {
   struct CallInfo *i_ci;  /* active function */
 };
 
-/* }====================================================================== */
+
+SEXE_API void sexe_pushboolean(sexe_t *S, int b);
 
 
-/******************************************************************************
-* Copyright (C) 1994-2011 Lua.org, PUC-Rio.  All rights reserved.
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-******************************************************************************/
-
-
-#endif
+#endif /* ndef __SEXE_LUA_H__ */

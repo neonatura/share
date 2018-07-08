@@ -352,7 +352,7 @@ int shnet_track_verify(shpeer_t *peer, int *sk_p)
   if (err < 0) {
     *sk_p = 0;
     shnet_close(sk);
-    return (-errno);
+    return (errno2sherr());
   }
 #endif
   if (err == 0)
@@ -362,7 +362,7 @@ int shnet_track_verify(shpeer_t *peer, int *sk_p)
   ret_size = sizeof(ret);
   err = getsockopt(sk, SOL_SOCKET, SO_ERROR, &ret, &ret_size);
   if (err) {
-    ret = -errno;
+    ret = errno2sherr();
   } else {
     ret = -ret;
   }

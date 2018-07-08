@@ -146,9 +146,8 @@ void print_process_usage(void)
       "Files:\n"
       "\tOne or more files which contain Lua source code or pre-compiled SEXE bytecode.\n"
       "\n"
-      "Visit 'http://docs.sharelib.net/' for libshare API documentation.\n"
-      "Report bugs to <%s>.\n",
-      process_name, get_libshare_email());
+      "Visit 'http://sharelib.net/libshare/' for libshare API documentation.\n",
+      process_name);
 }
 
 void print_process_version(void)
@@ -206,18 +205,17 @@ static int traceback (lua_State *L) {
   return 1;
 }
 
-
 static int docall (lua_State *L, int narg, int nres) {
-  int status;
-  int base = lua_gettop(L) - narg;  /* function index */
-  lua_pushcfunction(L, traceback);  /* push traceback function */
-  lua_insert(L, base);  /* put it under chunk and args */
-  globalL = L;  /* to be available to 'laction' */
-  signal(SIGINT, laction);
-  status = lua_pcall(L, narg, nres, base);
-  signal(SIGINT, SIG_DFL);
-  lua_remove(L, base);  /* remove traceback function */
-  return status;
+	int status;
+	int base = lua_gettop(L) - narg;  /* function index */
+	lua_pushcfunction(L, traceback);  /* push traceback function */
+	lua_insert(L, base);  /* put it under chunk and args */
+	globalL = L;  /* to be available to 'laction' */
+	signal(SIGINT, laction);
+	status = lua_pcall(L, narg, nres, base);
+	signal(SIGINT, SIG_DFL);
+	lua_remove(L, base);  /* remove traceback function */
+	return status;
 }
 
 
@@ -227,11 +225,9 @@ static void print_version (void) {
 }
 
 
-static int getargs (lua_State *L, char **argv, int n) {
+static int getargs (lua_State *L, int argc, char **argv, int n) {
   int narg;
   int i;
-  int argc = 0;
-  while (argv[argc]) argc++;  /* count total number of arguments */
   narg = argc - (n + 1);  /* number of arguments to the script */
   luaL_checkstack(L, narg + 3, "too many arguments to script");
   for (i=n+1; i < argc; i++)
@@ -364,18 +360,20 @@ static void dotty (lua_State *L) {
   progname = oldprogname;
 }
 
-
+#if 0
 static int handle_script (lua_State *L, int argc, char **argv, int n) 
 {
   int status;
   const char *fname;
   int narg = getargs(L, argv, n);  /* collect arguments */
   int i;
+fprintf(stderr, "DEBUG: handle_script: %d = getargs(argc %d)\n", narg, argc);
 
   lua_setglobal(L, "arg");
 
   for (i = 1; i < argc; i++) {
     if (argv[i][0] == '-') continue;
+
     status = luaL_loadfile(L, argv[i]);
     //lua_insert(L, -i);
     lua_insert(L, -(narg+1));
@@ -383,7 +381,64 @@ static int handle_script (lua_State *L, int argc, char **argv, int n)
       status = docall(L, narg, LUA_MULTRET);
     else
       lua_pop(L, narg);
+
+		/* only execute single script */
+		break;
   }
+  return report(L, status);
+}
+#endif
+
+static int handle_script(lua_State *L, int argc, char **argv)
+{
+  int status;
+  const char *fname;
+	int narg;
+	int i, j;
+#if 0
+  int narg = getargs(L, argv, n);  /* collect arguments */
+  int i;
+fprintf(stderr, "DEBUG: handle_script: %d = getargs(argc %d)\n", narg, argc);
+
+  lua_setglobal(L, "arg");
+#endif
+
+	status = LUA_OK;
+
+  for (i = 1; i < argc; i++) {
+    if (argv[i][0] == '-') continue;
+
+#if 0
+    status = luaL_loadfile(L, argv[i]);
+    //lua_insert(L, -i);
+    lua_insert(L, -(narg+1));
+    if (status == LUA_OK)
+      status = docall(L, narg, LUA_MULTRET);
+    else
+      lua_pop(L, narg);
+#endif
+
+		/* set command-line arguments. */
+		narg = (argc - i);
+		lua_createtable(L, narg, 0);
+		for (j = i; j < argc; j++) {
+			lua_pushstring(L, argv[j]);
+			lua_rawseti(L, -2, (j-i));
+		}
+		lua_setglobal(L, "arg");
+
+		/* execute single script */
+		int status = luaL_loadfile(L, argv[i]);
+		if (status == LUA_OK) {
+			status = docall(L, 0, LUA_MULTRET);
+//if (status != 0) fprintf(stderr, "DEBUG: %d = docall()\n", status);
+		} else {
+//fprintf(stderr, "DEBUG: %d = luaL_loadfile()\n", status);
+      //lua_pop(L, narg);
+		}
+		break;
+  }
+
   return report(L, status);
 }
 
@@ -445,15 +500,16 @@ static int handle_luainit (lua_State *L) {
     return dostring(L, init, name);
 }
 
-static int collectargs(char **argv)
+static int collectargs(int argc, char **argv)
 {
   int i;
-  for (i = 1; argv[i] != NULL; i++) {
+  for (i = 1; i < argc; i++) {
     if (argv[i][0] != '-')  /* not an option? */
       return i;
   }
   return (0);
 }
+
 
 static int pmain (lua_State *L) 
 {
@@ -479,33 +535,43 @@ static int pmain (lua_State *L)
   if (handle_luainit(L) != LUA_OK)
     return 0;  /* error running LUA_INIT */
 
-  install_sexe_userdata(L, argv[0]);
-  install_sexe_functions(L);
-
-  /* execute arguments -e and -l */
-//  if (!runargs(L, argv, (script > 0) ? script : argc)) return 0;
-
   /* execute main script (if there is one) */
-  script = collectargs(argv);
-  if (handle_script(L, argc, argv, script) != LUA_OK)
+//  script = collectargs(argv);
+  if (handle_script(L, argc, argv) != LUA_OK)
     return 0;
 
 #if 0
-  if (args[has_i])  /* -i option? */
-    dotty(L);
-  else if (script == 0 && !args[has_e] && !args[has_v]) {  /* no arguments? */
-    if (lua_stdin_is_tty()) {
-      print_version();
-      dotty(L);
-    }
-    else dofile(L, NULL);  /* executes stdin as a file */
-  }
-  lua_pushboolean(L, 1);  /* signal no errors */
+	/* call "InitEvent" event */
+	lua_pushcfunction(L, lfunc_trigger_event);
+	lua_pushstring(L, "InitEvent");
+	lua_pushnil(L);
+	lua_pcall(L, 2, 1, 0);
+	lua_pop(L, 1);
+
+	/* call "RunEvent" event */
+	lua_pushcfunction(L, lfunc_trigger_event);
+	lua_pushstring(L, "RunEvent");
+	lua_pushnil(L);
+	lua_pcall(L, 2, 1, 0);
+	lua_pop(L, 1);
 #endif
+
   return 1;
 }
 
 
+int sexe_pget(sexe_t *S, char *name, shjson_t **arg_p)
+{
+  shjson_t *json;
+
+  lua_getglobal(S, name);
+  json = sexe_table_get(S); 
+  if (!json)
+    return (SHERR_INVAL);
+
+  *arg_p = json;
+  return (0);
+}
 
 int main(int argc, char **argv) 
 {
@@ -514,6 +580,10 @@ int main(int argc, char **argv)
 
   process_path = argv[0];
   strncpy(process_name, shfs_app_name(process_path), sizeof(process_name) - 1);
+
+	set_sexe_stdin(stdin);
+	set_sexe_stdout(stdout);
+	set_sexe_stderr(stderr);
 
   run_flags |= RUNF_LOCAL;
   for (i = 1; i < argc; i++) {

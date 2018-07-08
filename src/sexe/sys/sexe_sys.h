@@ -32,15 +32,51 @@
 #ifndef __SEXE__SYS__SYS_H__
 #define __SEXE__SYS__SYS_H__
 
+/**
+ * @ingroup sexe
+ * @defgroup sexe_sys Standard SEXE Libraries
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void sexe_math_init(lua_State *L);
+
+/** The sexe standard string library. */
+LUAMOD_API int luaopen_string(sexe_t *L);
+
+/** The sexe standard math library. */
+LUAMOD_API int luaopen_math(sexe_t *L); 
+
+/** The sexe standard time library. */
+LUAMOD_API int luaopen_time(sexe_t *L);
+
+/** The sexe standard crypt library. */
+LUAMOD_API int luaopen_crypt(sexe_t *L); 
+
+/** The sexe standard event library. */
+LUAMOD_API int luaopen_event(sexe_t *L); 
+
+void set_sexe_stdin(FILE *stdin);
+void set_sexe_stdout(FILE *stdout);
+void set_sexe_stderr(FILE *stderr);
+
+FILE *get_sexe_stdin(void);
+FILE *get_sexe_stdout(void);
+FILE *get_sexe_stderr(void);
+
+
+int lfunc_trigger_event(sexe_t *L);
 
 #ifdef __cplusplus
 }
 #endif
+
+/**
+ * @}
+ */
+
 
 #endif /* ndef __SEXE__SYS__SYS_H__ */
 

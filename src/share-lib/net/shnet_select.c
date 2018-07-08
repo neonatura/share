@@ -48,7 +48,7 @@ int shselect(int nfds, fd_set *readfds, fd_set *writefds,
 
   err = select(nfds,readfds,writefds,exceptfds,timeout);
   if (err < 0)
-    return (-errno);
+    return (errno2sherr());
 
   return (err);
 }
