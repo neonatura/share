@@ -722,6 +722,10 @@ int sexe_pcall_json(sexe_t *S, char *func, shjson_t *call)
 			shjson_num_add(call, "return", (double)lua_tonumber(S, -1)); 
 		} else if (lua_isboolean(S, -1)) {
 			shjson_bool_add(call, "return", lua_toboolean(S, -1) ? TRUE : FALSE);
+		} else if (lua_istable(S, -1)) {
+			shjson_t *obj = sexe_table_get(S);
+			shjson_obj_append(obj, shjson_obj_add(call, "return"));
+			shjson_free(&obj);
 		}
 	}
 
@@ -785,6 +789,7 @@ void sexe_pclose(sexe_t *S)
 int sexe_pevent(sexe_t *S, char *event_name, shjson_t *data)
 {
 	int err;
+	int ret;
 
 	lua_pushcfunction(S, lfunc_trigger_event);
 	lua_pushstring(S, event_name);
@@ -794,12 +799,15 @@ int sexe_pevent(sexe_t *S, char *event_name, shjson_t *data)
 		sexe_table_set(S, data);
 
 	err = lua_pcall(S, 2, 1, 0);
+//if (err) fprintf(stderr, "DEBUG: sexe_pevent: %d = lua_pcall()\n", err);
 	if (err != LUA_OK) {
 		/* .. */
 		return (FALSE);
 	}
 
-	return (lua_toboolean(S, -1));
+	ret = lua_toboolean(S, -1);
+//if (err) fprintf(stderr, "DEBUG: sexe_pevent: InitEvent ret'd %s\n", ret?"true":"false");
+	return (ret);
 }
 
 SEXE_API void sexe_pushboolean(sexe_t *S, int b)

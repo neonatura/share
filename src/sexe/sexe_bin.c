@@ -275,6 +275,7 @@ void SexeLoadConstants(LoadState* S, Proto* f, sexe_stack_t *stack)
   char *lit;
   char **lits;
   char *s_ptr;
+	lua_Number n;
   int tot;
   int idx;
   int i;
@@ -332,7 +333,7 @@ void SexeLoadConstants(LoadState* S, Proto* f, sexe_stack_t *stack)
         setbvalue(o, (unsigned char)con.con_val);
         break;
       case LUA_TNUMBER:
-        setnvalue(o, (lua_Number)con.con_val);
+        setnvalue(o, (lua_Number)shnum_get(con.con_val));
         break;
       case LUA_TSTRING:
         if (lits && con.con_val < tot) {
@@ -900,7 +901,7 @@ static void SexeDumpConstants(const Proto* f, DumpState* D)
         con.con_val = (uint64_t)bvalue(o); 
         break;
       case LUA_TNUMBER:
-        con.con_val = (uint64_t)nvalue(o);
+				shnum_set((shnum_t)nvalue(o), &con.con_val);
         break;
       case LUA_TSTRING:
         con.con_val = (uint64_t)str_idx;
@@ -1175,7 +1176,7 @@ Proto *sexe_compile(lua_State *L, int argc, char **argv)
 			char *ptr;
 
 			memset(modname, 0, sizeof(modname));
-			strncpy(modname, argv[i], sizeof(modname)-1);
+			strncpy(modname, basename(argv[i]), sizeof(modname)-1);
 			ptr = strrchr(modname, '.');
 			if (ptr) *ptr = '\000'; /* kill ext */
 

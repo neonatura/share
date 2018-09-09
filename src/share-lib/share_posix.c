@@ -53,6 +53,12 @@ int shopen(const char *path, const char *mode, shfs_t *fs)
     return (err);
   }
 
+  if (stream->buff_max != 0 && strchr(mode, 'w')) {
+		/* "Truncate file to zero length or create text  file  for  writing." */
+		err = shfstream_truncate(stream, 0);
+		if (err)
+			return (err);
+	}
 
   if (strchr(mode, 'a')) {
 //    fp->stream.buff_max = 0; /* belay the truncation */

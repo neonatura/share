@@ -56,15 +56,21 @@ static const char* reader(lua_State *L, void *ud, size_t *size)
 
 #define toproto(L,i) getproto(L->top+(i))
 
-static const Proto* combine(lua_State* L, int n)
+static const Proto* combine(lua_State* L, int n, char *progname)
 {
- if (n==1)
-  return toproto(L,-1);
- else
- {
-  Proto* f;
-  int i=n;
-  if (sexe_load(L,reader,&i,"=(" PROGNAME ")",NULL)!=LUA_OK) fatal(lua_tostring(L,-1));
+	char sexe_progname[MAX_SEXE_NAME_LENGTH];
+	Proto* f;
+	int i=n;
+
+	if (n==1) {
+		return toproto(L,-1);
+	}
+
+	if (!progname) progname = PROGNAME;
+	memset(sexe_progname, 0, sizeof(sexe_progname));
+	snprintf(sexe_progname, sizeof(sexe_progname)-1, "=(%s)", progname); 
+
+  if (sexe_load(L,reader,&i,sexe_progname,NULL)!=LUA_OK) fatal(lua_tostring(L,-1));
   f=toproto(L,-1);
   for (i=0; i<n; i++)
   {
@@ -73,7 +79,6 @@ static const Proto* combine(lua_State* L, int n)
   }
   f->sizelineinfo=0;
   return f;
- }
 }
 
 static int writer(lua_State* L, const void* p, size_t size, void* u)
@@ -82,25 +87,36 @@ static int writer(lua_State* L, const void* p, size_t size, void* u)
  return (fwrite(p,size,1,(FILE*)u)!=1) && (size!=0);
 }
 
+
 static int pmain(lua_State* L)
 {
   int argc=(int)lua_tointeger(L,1);
   char** argv=(char**)lua_touserdata(L,2);
   const Proto* f;
+	char progname[MAX_SEXE_NAME_LENGTH];
+	char *text;
+	uint32_t crc;
   int tot;
   int i;
+
 
   if (!lua_checkstack(L,argc)) fatal("too many input files");
 
   tot = 0;
-  for (i=1; i<argc; i++)
-  {
+	crc = 0;
+  for (i=1; i<argc; i++) {
     if (argv[i][0] == '-') continue;
     if (0 == strcmp(argv[i], out_path)) continue;
     if (sexe_loadfile(L,argv[i], NULL)!=LUA_OK) fatal(lua_tostring(L,-1));
     tot++;
+
+		text = basename(argv[i]);
+		crc += shcrc32(text, strlen(text));
   }
-  f=combine(L, tot);
+
+	memset(progname, 0, sizeof(progname));
+	snprintf(progname, sizeof(progname)-1, "%u", crc);
+  f=combine(L, tot, progname);
 
   if (!(run_flags & RUNF_TEST)) {
     FILE* D = fopen(out_path, "wb");

@@ -47,6 +47,7 @@
 #define SHERR_SRCH -3 /* ESRCH */
 #define SHERR_IO -5 /* EIO */
 #define SHERR_2BIG -7 /* E2BIG */
+#define SHERR_NOEXEC -8 /* NOEXEC */
 #define SHERR_BADF -9 /* EBADF */
 #define SHERR_AGAIN -11 /* EAGAIN */
 #define SHERR_NOMEM -12 /* ENOMEM */
@@ -195,6 +196,7 @@ static _errcode_t _share_stderr_table[] = {
 #define ERR_SRCH SHERR_SRCH
 #define ERR_IO SHERR_IO
 #define ERR_2BIG SHERR_2BIG
+#define ERR_NOEXEC ERR_NOEXEC
 #define ERR_BADF SHERR_BADF
 #define ERR_AGAIN SHERR_AGAIN
 #define ERR_NOMEM SHERR_NOMEM

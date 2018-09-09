@@ -644,19 +644,6 @@ static int _lfunc_sexe_io_flush(lua_State *L)
 	return 1;
 }
 
-/* combines string "tag" with a unique key referencing the module's name. */
-static shkey_t *_lfunc_sexe_io_key(lua_State *L, char *tag)
-{
-	static shkey_t ret_key;
-	shkey_t tag_key;
-
-	memcpy(&tag_key, ashkey_str(tag), sizeof(tag_key));
-	memcpy(&ret_key, &L->pname, sizeof(ret_key));
-	memxor(&ret_key, &tag_key, sizeof(shkey_t));
-
-	return (&ret_key);
-}
-
 /* write a table to a json file */
 static int _lfunc_sexe_io_serialize(lua_State *L)
 {
@@ -664,15 +651,14 @@ static int _lfunc_sexe_io_serialize(lua_State *L)
 	shkey_t *key;
 	char path[PATH_MAX+1];
 	char *ptr;
+	char *tag;
 	int err;
 	int fd;
 
 	if (lua_isstring(L, 1)) {
-		char *tag = luaL_checkstring(L, 1);
-		key = _lfunc_sexe_io_key(L, tag);
+		tag = luaL_checkstring(L, 1);
 	} else {
-		/* random */
-		key = ashkey_num(0);
+		tag = NULL;
 	}
 
 	if (!lua_istable(L, 2)) {
@@ -686,20 +672,13 @@ static int _lfunc_sexe_io_serialize(lua_State *L)
 		lua_pushboolean(L, FALSE);
 		return (1);
 	}
-	ptr = shjson_print(j);
-	shjson_free(&j);
 
-	sprintf(path, "/sys/data/sexe/io/%s", shkey_hex(key));
-	fd = shopen(path, "wb", NULL);
-	if (fd < 0) {
-		free(ptr);
+	err = sexe_io_serialize(L, tag, j); 
+	shjson_free(&j);
+	if (err) {
 		lua_pushboolean(L, FALSE);
 		return (1);
 	}
-
-	shwrite(fd, ptr, strlen(ptr));
-	shclose(fd);
-	free(ptr);
 
 	lua_pushboolean(L, 1);
 	return (1);
@@ -708,51 +687,19 @@ static int _lfunc_sexe_io_serialize(lua_State *L)
 /* parse json from a file into a table */
 static int _lfunc_sexe_io_unserialize(lua_State *L)
 {
-	struct stat st;
-	shkey_t *key;
 	shjson_t *j;
-	char *json_text;
-	char path[PATH_MAX+1];
-	char *ptr;
+	char *tag;
 	int err;
-	int fd;
 
 	if (lua_isstring(L, 1)) {
-		char *tag = luaL_checkstring(L, 1);
-		key = _lfunc_sexe_io_key(L, tag);
+		tag = luaL_checkstring(L, 1);
 	} else {
-		/* random */
-		key = ashkey_num(0);
+		tag = NULL;
 	}
 
-	sprintf(path, "/sys/data/sexe/io/%s", shkey_hex(key));
-
-	fd = shopen(path, "rb", NULL);
-	if (fd < 0) {
-		lua_pushnil(L); /* no data avail */
-		return (1);
-	}
-
-	memset(&st, 0, sizeof(st));
-	(void)shfstat(fd, &st);
-
-	json_text = (char *)calloc(st.st_size + 1, sizeof(char));
-	if (!json_text) {
-		lua_pushnil(L); /* no data avail */
-		return (1);
-	}
-
-	err = shread(fd, json_text, st.st_size);
-	shclose(fd);
-	if (err < 0) {
-		free(json_text);
-		lua_pushnil(L); /* no data avail */
-		return (1);
-	}
-
-	j = shjson_init(json_text);
-	free(json_text);
-	if (!j) {
+	j = NULL;
+	err = sexe_io_unserialize(L, tag, &j);
+	if (err) {
 		lua_pushnil(L); /* no data avail */
 		return (1);
 	}
@@ -760,7 +707,6 @@ static int _lfunc_sexe_io_unserialize(lua_State *L)
 	/* push table on stack. */
 	sexe_table_set(L, j);
 	shjson_free(&j);
-
 	return (1);
 }
 

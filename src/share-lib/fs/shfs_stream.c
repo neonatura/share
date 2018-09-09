@@ -185,6 +185,10 @@ int shfstream_close(shfstream_t *stream)
 
   err = shfstream_flush(stream);
 
+	if (stream->file && (stream->buff_max != shfs_size(stream->file))) {
+		(void)shfs_truncate(stream->file, stream->buff_max);
+	}
+
   if (stream->fs) {
     /* free partition reference, if allocated */
     shfs_free(&stream->fs);

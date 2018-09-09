@@ -98,8 +98,23 @@ static int _lfunc_sexe_math_ceil (lua_State *L) {
   return 1;
 }
 
-static int _lfunc_sexe_math_floor (lua_State *L) {
-  lua_pushnumber(L, l_tg(floor)(luaL_checknumber(L, 1)));
+int lfunc_sexe_math_floor(lua_State *L) 
+{
+	lua_Number ret_valprec;
+	lua_Number prec;
+	lua_Number val;
+
+	val = luaL_checknumber(L, 1);
+	prec = (lua_Number)luaL_optinteger(L, 2, 0); 
+	if (prec > 0)
+		val = val * pow(prec, 10);
+
+  val = (lua_Number)l_tg(floor)(val); 
+	if (prec > 0)
+		val = val / pow(prec, 10);
+
+	/* single argument number result */
+  lua_pushnumber(L, val);
   return 1;
 }
 
@@ -297,7 +312,7 @@ static const luaL_Reg sexe_math_lib[] = {
   {"cos",   _lfunc_sexe_math_cos},
   {"deg",   _lfunc_sexe_math_deg},
   {"exp",   _lfunc_sexe_math_exp},
-  {"floor", _lfunc_sexe_math_floor},
+  {"floor", lfunc_sexe_math_floor},
   {"fmod",   _lfunc_sexe_math_fmod},
   {"frexp", _lfunc_sexe_math_frexp},
   {"ldexp", _lfunc_sexe_math_ldexp},

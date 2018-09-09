@@ -77,3 +77,107 @@ FILE *get_sexe_stderr(void)
 }
 
 
+/* combines string "tag" with a unique key referencing the module's name. */
+static shkey_t *_sexe_serialize_key(lua_State *L, char *tag)
+{
+	static shkey_t ret_key;
+	shkey_t *tkey;
+	shkey_t tag_key;
+
+	memcpy(&tag_key, ashkey_str(tag), sizeof(tag_key));
+	tkey = shkey_xor(&L->pname, &tag_key);
+	memcpy(&ret_key, tkey, sizeof(ret_key));
+	shkey_free(&tkey);
+
+	return (&ret_key);
+}
+
+int sexe_io_serialize(sexe_t *S, char *tag, shjson_t *j)
+{
+  shkey_t *key;
+  char path[PATH_MAX+1];
+  char *ptr;
+  int err;
+  int fd;
+
+	if (tag) {
+		/* module + tag = key */
+    key = _sexe_serialize_key(S, tag);
+	} else {
+		/* psuedo-null */
+    key = ashkey_num(0);
+	}
+
+  sprintf(path, "/sys/data/sexe/io/%s", shkey_hex(key));
+
+	if (!j) {
+		/* erase serialized content */
+		shfs_t *fs = shfs_init(NULL);
+		err = shfs_unlink(fs, path);
+		shfs_free(&fs);
+	}
+/*else*/ {
+		/* store serialized [JSON] content */
+		fd = shopen(path, "wb", NULL);
+		if (fd < 0)
+			return (errno2sherr());
+
+		if (j) {
+			ptr = shjson_print(j);
+			shwrite(fd, ptr, strlen(ptr));
+			free(ptr);
+		}
+
+		(void)shclose(fd);
+	}
+
+	return (0);
+}
+
+int sexe_io_unserialize(sexe_t *S, char *tag, shjson_t **j_p)
+{
+	struct stat st;
+	shkey_t *key;
+	shjson_t *j;
+	char *json_text;
+	char path[PATH_MAX+1];
+	char *ptr;
+	int err;
+	int fd;
+
+	*j_p = NULL;
+
+	if (tag) {
+		key = _sexe_serialize_key(S, tag);
+	} else {
+		key = ashkey_num(0);
+	}
+
+	sprintf(path, "/sys/data/sexe/io/%s", shkey_hex(key));
+	fd = shopen(path, "rb", NULL);
+	if (fd < 0)
+		return (fd);
+
+	memset(&st, 0, sizeof(st));
+	(void)shfstat(fd, &st);
+
+	json_text = (char *)calloc(st.st_size + 1, sizeof(char));
+	if (!json_text)
+		return (SHERR_NOMEM);
+
+	err = shread(fd, json_text, st.st_size);
+	shclose(fd);
+	if (err < 0) {
+		free(json_text);
+		return (err);
+	}
+
+	j = shjson_init(json_text);
+	free(json_text);
+	if (!j)
+		return (SHERR_ILSEQ);
+
+	*j_p = j;
+	return (0);
+}
+

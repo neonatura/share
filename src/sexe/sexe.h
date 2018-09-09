@@ -779,6 +779,10 @@ char ac_sexe(void);
  */
 void sexe_event_register(lua_State *L, char *e_name, lua_CFunction f);
 
+int sexe_io_serialize(sexe_t *S, char *tag, shjson_t *j);
+
+int sexe_io_unserialize(sexe_t *S, char *tag, shjson_t **j_p);
+
 
 /**
  *  @}

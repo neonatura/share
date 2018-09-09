@@ -516,15 +516,16 @@ const luaL_Reg sexesystemlibs[] = {
 };
 
 /* todo: Need to include file in .sx compilation / allow .sx inclusion */
-static int ll_require (lua_State *L) {
-  const char *name = luaL_checkstring(L, 1);
+static int ll_require (lua_State *L) 
+{
+	const char *name = luaL_checkstring(L, 1);
 	luaL_Reg *lib;
 
-  lua_settop(L, 1);  /* _LOADED table will be at index 2 */
-  lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
-  lua_getfield(L, 2, name);  /* _LOADED[name] */
-  if (lua_toboolean(L, -1))  /* is it there? */
-    return 1;  /* package is already loaded */
+	lua_settop(L, 1);  /* _LOADED table will be at index 2 */
+	lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED");
+	lua_getfield(L, 2, name);  /* _LOADED[name] */
+	if (lua_toboolean(L, -1))  /* is it there? */
+		return 1;  /* package is already loaded */
 
 	/* internal SEXE system library */
 	for (lib = sexesystemlibs; lib->func; lib++) {
@@ -546,13 +547,13 @@ static int ll_require (lua_State *L) {
 	if (!lua_isnil(L, -1))  /* non-nil return? */
 		lua_setfield(L, 2, name);  /* _LOADED[name] = returned value */
 	lua_getfield(L, 2, name);
-  if (lua_isnil(L, -1)) {   /* module did not set a value? */
-    lua_pushboolean(L, 1);  /* use true as result */
-    lua_pushvalue(L, -1);  /* extra copy to be returned */
-    lua_setfield(L, 2, name);  /* _LOADED[name] = true */
-  }
+	if (lua_isnil(L, -1)) {   /* module did not set a value? */
+		lua_pushboolean(L, 1);  /* use true as result */
+		lua_pushvalue(L, -1);  /* extra copy to be returned */
+		lua_setfield(L, 2, name);  /* _LOADED[name] = true */
+	}
 
-  return 1;
+	return 1;
 }
 
 /* }====================================================== */

@@ -1583,7 +1583,7 @@ _TEST(shrsa)
 
   memcpy( rsa_plaintext, RSA_PT, PT_LEN );
   err = shrsa_pkcs1_encrypt( &rsa, myrand, NULL, SHRSA_PUBLIC, PT_LEN, rsa_plaintext, rsa_ciphertext );
-fprintf(stderr, "DEBUG: %d = shrsa_pkcs1_encrypt()\n", err);
+if (err) fprintf(stderr, "DEBUG: %d = shrsa_pkcs1_encrypt()\n", err);
 
   _TRUE(0 == shrsa_pkcs1_decrypt( &rsa, myrand, NULL, SHRSA_PRIVATE, &len, rsa_ciphertext, rsa_decrypted, sizeof(rsa_decrypted) ));
 

@@ -69,6 +69,13 @@ FILE *get_sexe_stderr(void);
 
 int lfunc_trigger_event(sexe_t *L);
 
+/**
+ * The "floor" mathematical operative rounds a number down to the nearest integer.
+ * @note The first argument contains the number to round down. The second optional integral argument specifies a decimal point precision (power of ten) to round down to. For example, "round(3.3333, 2)" would return "3.33".
+ */
+int lfunc_sexe_math_floor(sexe_t *L); 
+
+
 #ifdef __cplusplus
 }
 #endif

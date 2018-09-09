@@ -82,9 +82,12 @@ static void sexe_table_field_get(lua_State *L, shjson_t *json)
   char *e_ptr;
   double d;
   int do_set;
+	int t;
 
   lua_pushnil(L);
   while (lua_next(L, -2)) {
+//		t = lua_type(L, -1);
+
     if (lua_istable(L, -1)) {
       obj = shjson_CreateObject();
       sexe_table_field_get(L, obj);
@@ -93,6 +96,8 @@ static void sexe_table_field_get(lua_State *L, shjson_t *json)
       shjson_AddItemToObject(json, k, obj);
       continue;
     }
+
+
 
     v = NULL;
     d = 0;

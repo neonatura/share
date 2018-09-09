@@ -33,6 +33,59 @@
 #include <sys/mman.h>
 #endif
 
+
+/* recursive dir generation for relative paths. */
+static void shbuf_mkdir(char *path)
+{
+	struct stat st;
+  char dir[PATH_MAX+1];
+	char *s_ptr;
+	char *e_ptr;
+
+  memset(dir, 0, sizeof(dir));
+  if (*path == '/')
+    strcat(dir, "/");
+
+	s_ptr = path;
+	while (s_ptr) {
+		e_ptr = strchr(s_ptr, '/');
+		if (!e_ptr)
+			break;
+
+		if (e_ptr != s_ptr) {
+			if (strlen(dir) + (e_ptr - s_ptr) >= PATH_MAX)
+				break;
+
+			strncat(dir, s_ptr, e_ptr - s_ptr); 
+			strcat(dir, "/");
+			if (0 != stat(dir, &st))
+				mkdir(dir, 0777);
+		}
+		s_ptr = e_ptr + 1;
+	}
+
+#if 0
+  save_ptr = NULL;
+  tok = strtok_r(path, "/", &save_ptr);
+  while (tok) {
+    n_tok = strtok_r(NULL, "/", &save_ptr);
+    if (!n_tok)
+      break;
+
+    strcat(dir, tok);
+    strcat(dir, "/");
+
+		if (0 != stat(dir, &st)) {
+			mkdir(dir, 0777);
+		}
+
+    tok = n_tok;
+  }
+#endif
+
+}
+
+
 shbuf_t *shbuf_map(unsigned char *data, size_t data_len)
 {
   shbuf_t *buf;
@@ -231,7 +284,7 @@ void shbuf_catstr(shbuf_t *buf, char *data)
 _TEST(shbuf_catstr)
 {
   shbuf_t *buff;
-  char str[4096];
+	char *str;
   int i;
 
   buff = shbuf_init();
@@ -239,14 +292,17 @@ _TEST(shbuf_catstr)
   if (!buff)
     return;
 
-  memset(str, 0, sizeof(str));
-  memset(str, 'a', sizeof(str) - 1);
+	str = (char *)calloc(10240, sizeof(char));
+  memset(str, 0, 10240);
+  memset(str, 'a', 10239);
   shbuf_catstr(buff, str);
+	free(str);
+
   _TRUEPTR(buff->data);
   if (buff->data)
-    _TRUE((size_t)strlen(buff->data) == (sizeof(str) - 1));
-  _TRUE((size_t)buff->data_of == (sizeof(str) - 1));
-  _TRUE((size_t)buff->data_max >= (sizeof(str) - 1));
+    _TRUE((size_t)strlen(buff->data) == 10239);
+  _TRUE((size_t)buff->data_of == 10239);
+  _TRUE((size_t)buff->data_max >= 10239);
 
   shbuf_free(&buff);
 }
@@ -484,35 +540,6 @@ void shbuf_free(shbuf_t **buf_p)
   *buf_p = NULL;
 }
 
-/* recursive dir generation for relative paths. */
-static void shbuf_mkdir(char *path)
-{
-  char hier[PATH_MAX+1];
-  char dir[PATH_MAX+1];
-  char *save_ptr;
-  char *n_tok;
-  char *tok;
-
-  memset(dir, 0, sizeof(dir));
-  if (*path == '/')
-    strcat(dir, "/");
-
-  save_ptr = NULL;
-  memset(hier, 0, sizeof(hier));
-  strncpy(hier, path, sizeof(hier) - 1);
-  tok = strtok_r(hier, "/", &save_ptr);
-  while (tok) {
-    n_tok = strtok_r(NULL, "/", &save_ptr);
-    if (!n_tok)
-      break;
-
-    strcat(dir, tok);
-    strcat(dir, "/");
-    mkdir(dir, 0777);
-    tok = n_tok;
-  }
-
-}
 
 shbuf_t *shbuf_file(char *path)
 {
@@ -530,11 +557,13 @@ shbuf_t *shbuf_file(char *path)
     return (NULL);
 
   shbuf_mkdir(path);
+
   fd = open(path, O_RDWR | O_CREAT, S_IRWXU);
   if (fd == -1) {
     char logmsg[4096];
 
-    sprintf(logmsg, "shbuf_file: open '%s'", path);
+		memset(logmsg, 0, sizeof(logmsg));
+    snprintf(logmsg, sizeof(logmsg)-1, "shbuf_file: open '%s'", path);
     PRINT_ERROR(errno2sherr(), logmsg);
     return (NULL);
   }

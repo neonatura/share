@@ -4108,6 +4108,14 @@ int shjson_array_count(shjson_t *json, char *name);
 shjson_t *shjson_obj_add(shjson_t *tree, char *name);
 
 /**
+ * Append a JSON object into another object.
+ * @param item A JSON object to copy from.
+ * @param obj The JSON object to copy to.
+ * @note Can also be used on a JSON array.
+ */
+void shjson_obj_append(shjson_t *item, shjson_t *obj);
+
+/**
  * Obtain an allocated string value from an array.
  * @param json The JSON object containing the array.
  * @param name The name of the array in the JSON object.

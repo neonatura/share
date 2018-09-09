@@ -48,7 +48,7 @@ void sexe_header(lu_byte* h, char *name)
   mod->sz_instr = sizeof(Instruction);
   mod->sz_lnum = sizeof(lua_Number);
   mod->integral = (((lua_Number)0.5) == 0);
-  strncpy(mod->name, name, sizeof(mod->name) - 1);
+  strncpy(mod->name, basename(name), sizeof(mod->name) - 1);
   memcpy(mod->tail, SEXE_TAIL, sizeof(mod->tail));
 
 }

@@ -31,7 +31,7 @@ typedef struct fs_stat_t
   double scan_time;
 } fs_stat_t;
 
-static void shfs_inode_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, shmap_t *imap);
+static void shfs_inode_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, shmap_t *imap, int *level_p);
 
 static char *_print_size_value(size_t val)
 {
@@ -183,7 +183,7 @@ static void shfs_inode_update(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat)
 
 }
 
-static void shfs_chain_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, shmap_t *imap)
+static void shfs_chain_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, shmap_t *imap, int *level_p)
 {
   shfs_block_t nblk;
   char text[1024];
@@ -195,7 +195,7 @@ static void shfs_chain_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, sh
     err = shfs_inode_read_block(fs, &blk->hdr.fpos, &nblk);
     if (!err) {
       /* recursive scan partition's attached inodes. */
-      shfs_inode_verify(fs, &nblk, stat, imap);
+      shfs_inode_verify(fs, &nblk, stat, imap, level_p);
     } else {
       sprintf(text, "[inode %d:%d] %s.", blk->hdr.pos.jno, blk->hdr.pos.ino, sherrstr(err)); 
       sharetool_fs_error(FSERR_ERROR, text);
@@ -204,32 +204,36 @@ static void shfs_chain_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, sh
 
 }
 
-static void shfs_sequence_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, shmap_t *imap)
+static void shfs_sequence_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, shmap_t *imap, int *level_p)
 {
   shfs_block_t nblk;
   char text[1024];
   int err;
 
-  if (blk->hdr.npos.jno) {
+
+  if (blk->hdr.npos.jno != 0) {
+#if 0
     if (0 == memcmp(&nblk.hdr.pos, &blk->hdr.pos, sizeof(shfs_idx_t)))
       return (SHERR_IO); /* endless loop */
+#endif
 
     /* obtain next 'sequence' block */
     memset(&nblk, 0, sizeof(nblk));
     err = shfs_inode_read_block(fs, &blk->hdr.npos, &nblk);
     if (!err) {
       /* recursive scan partition's attached inodes. */
-      shfs_inode_verify(fs, &nblk, stat, imap);
+      shfs_inode_verify(fs, &nblk, stat, imap, level_p);
     } else {
-      sprintf(text, "[inode %d:%d] %s.", blk->hdr.pos.jno, blk->hdr.pos.ino, sherrstr(err)); 
+      sprintf(text, "[inode %d:%d/%d] %s.", blk->hdr.pos.jno, blk->hdr.pos.ino, sherrstr(err)); 
       sharetool_fs_error(FSERR_ERROR, text);
     }
+
   }
 
 
 }
 
-static void shfs_inode_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, shmap_t *imap)
+static void shfs_inode_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, shmap_t *imap, int *level_p)
 {
   shfs_idx_t *idx;
   char text[1024];
@@ -249,8 +253,16 @@ static void shfs_inode_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, sh
     shmap_set(imap, &blk->hdr.name, idx);
   }
 
+	*level_p = *level_p + 1;
+	if (*level_p >= 500) {
+		/* DEBUG: */
+		sprintf(text, "[inode %d:%d/%d] Too many links.", blk->hdr.pos.jno, blk->hdr.pos.ino, *level_p);
+		sharetool_fs_error(FSERR_ERROR, text);
+		return;
+	}
+
   /* sequential chain of inodes. */
-  shfs_sequence_verify(fs, blk, stat, imap);
+  shfs_sequence_verify(fs, blk, stat, imap, level_p);
 
   if (shfs_block_type(blk) == SHINODE_BINARY) {
     stat->aux_crc = 0;
@@ -259,7 +271,7 @@ static void shfs_inode_verify(shfs_t *fs, shfs_block_t *blk, fs_stat_t *stat, sh
   if (IS_INODE_CONTAINER(shfs_block_type(blk))) {
 
     /* some sort of inode container */
-    shfs_chain_verify(fs, blk, stat, imap);
+    shfs_chain_verify(fs, blk, stat, imap, level_p);
 
   } else {
     if (blk->hdr.fpos.jno || blk->hdr.fpos.ino) {
@@ -306,6 +318,7 @@ fs_stat_t *sharetool_fs_partition_verify(shfs_t *fs, shfs_block_t *blk, shmap_t 
   static fs_stat_t stat;
   char text[1024];
   shtime_t now;
+	int level;
   int err;
 
   memset(&stat, 0, sizeof(stat));
@@ -313,7 +326,8 @@ fs_stat_t *sharetool_fs_partition_verify(shfs_t *fs, shfs_block_t *blk, shmap_t 
   now = shtime();
   stat.first_mod = now;
 
-  shfs_inode_verify(fs, blk, &stat, imap);
+	level = 0;
+  shfs_inode_verify(fs, blk, &stat, imap, &level);
 
   stat.scan_time = shtimef(shtime()) - shtimef(now);
 

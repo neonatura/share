@@ -510,15 +510,20 @@ shkey_t *shfs_token_init(shfs_ino_t *parent, int mode, char *fname)
   char buf[5120];
   size_t buf_len;
   shkey_t *key;
+	int alg;
 
   buf_len = 0;
   memset(buf, 0, sizeof(buf));
 
-  /* inode parent token */
-  if (parent) {
-    memcpy(buf, &parent->blk.hdr.name, sizeof(shkey_t));
-    buf_len += sizeof(shkey_t);
-  }
+	alg = parent ? parent->blk.hdr.name.alg : SHALG_SHR224;
+
+	if (!SHALG(alg, SHALG_SHR224)) {
+		/* inode parent token */
+		if (parent) {
+			memcpy(buf, &parent->blk.hdr.name, sizeof(shkey_t));
+			buf_len += sizeof(shkey_t);
+		}
+	}
  
   /* inode mode */
   memcpy(buf + buf_len, &mode, sizeof(mode));
@@ -536,8 +541,14 @@ shkey_t *shfs_token_init(shfs_ino_t *parent, int mode, char *fname)
   }
 
   /* create unique key token. */
-  key = shkey_bin(buf, buf_len);
-  memcpy(&ret_key, key, sizeof(shkey_t));
+	key = shkey(alg, buf, buf_len);
+	if (parent && SHALG(alg, SHALG_SHR224)) {
+		shkey_t *tkey = shkey_xor(key, &parent->blk.hdr.name);
+		memcpy(&ret_key, tkey, sizeof(ret_key));
+		shkey_free(&tkey);
+	} else {
+		memcpy(&ret_key, key, sizeof(ret_key));
+	}
   shkey_free(&key);
 
   return (&ret_key);

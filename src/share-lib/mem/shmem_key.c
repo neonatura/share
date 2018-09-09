@@ -342,6 +342,9 @@ shkey_t *shkey_clone(shkey_t *key)
     return (NULL);
 
   ret_key = (shkey_t *)calloc(1, sizeof(shkey_t));
+	if (!ret_key)
+		return (NULL);
+
   memcpy(ret_key, key, sizeof(shkey_t));
   return (ret_key);
 }

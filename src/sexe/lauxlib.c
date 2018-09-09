@@ -796,20 +796,20 @@ static int libsize (const luaL_Reg *l) {
 ** global variable with that name. In any case, leaves on the stack
 ** the module table.
 */
-LUALIB_API void luaL_pushmodule (lua_State *L, const char *modname,
-                                 int sizehint) {
-  luaL_findtable(L, LUA_REGISTRYINDEX, "_LOADED", 1);  /* get _LOADED table */
-  lua_getfield(L, -1, modname);  /* get _LOADED[modname] */
-  if (!lua_istable(L, -1)) {  /* not found? */
-    lua_pop(L, 1);  /* remove previous result */
-    /* try global variable (and create one if it does not exist) */
-    lua_pushglobaltable(L);
-    if (luaL_findtable(L, 0, modname, sizehint) != NULL)
-      luaL_error(L, "name conflict for module " LUA_QS, modname);
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -3, modname);  /* _LOADED[modname] = new table */
-  }
-  lua_remove(L, -2);  /* remove _LOADED table */
+LUALIB_API void luaL_pushmodule (lua_State *L, const char *modname, int sizehint) 
+{
+	luaL_findtable(L, LUA_REGISTRYINDEX, "_LOADED", 1);  /* get _LOADED table */
+	lua_getfield(L, -1, modname);  /* get _LOADED[modname] */
+	if (!lua_istable(L, -1)) {  /* not found? */
+		lua_pop(L, 1);  /* remove previous result */
+		/* try global variable (and create one if it does not exist) */
+		lua_pushglobaltable(L);
+		if (luaL_findtable(L, 0, modname, sizehint) != NULL)
+			luaL_error(L, "name conflict for module " LUA_QS, modname);
+		lua_pushvalue(L, -1);
+		lua_setfield(L, -3, modname);  /* _LOADED[modname] = new table */
+	}
+	lua_remove(L, -2);  /* remove _LOADED table */
 }
 
 
@@ -871,8 +871,8 @@ LUALIB_API int luaL_getsubtable (lua_State *L, int idx, const char *fname) {
 ** is true, also registers the result in the global table.
 ** Leaves resulting module on the top.
 */
-LUALIB_API void luaL_requiref (lua_State *L, const char *modname,
-                               lua_CFunction openf, int glb) {
+LUALIB_API void luaL_requiref (lua_State *L, const char *modname, lua_CFunction openf, int glb) 
+{
   lua_pushcfunction(L, openf);
   lua_pushstring(L, modname);  /* argument to open function */
   lua_call(L, 1, 1);  /* open module */

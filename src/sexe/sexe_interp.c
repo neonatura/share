@@ -367,7 +367,6 @@ static int handle_script (lua_State *L, int argc, char **argv, int n)
   const char *fname;
   int narg = getargs(L, argv, n);  /* collect arguments */
   int i;
-fprintf(stderr, "DEBUG: handle_script: %d = getargs(argc %d)\n", narg, argc);
 
   lua_setglobal(L, "arg");
 
@@ -398,7 +397,6 @@ static int handle_script(lua_State *L, int argc, char **argv)
 #if 0
   int narg = getargs(L, argv, n);  /* collect arguments */
   int i;
-fprintf(stderr, "DEBUG: handle_script: %d = getargs(argc %d)\n", narg, argc);
 
   lua_setglobal(L, "arg");
 #endif
@@ -431,7 +429,6 @@ fprintf(stderr, "DEBUG: handle_script: %d = getargs(argc %d)\n", narg, argc);
 		int status = luaL_loadfile(L, argv[i]);
 		if (status == LUA_OK) {
 			status = docall(L, 0, LUA_MULTRET);
-//if (status != 0) fprintf(stderr, "DEBUG: %d = docall()\n", status);
 		} else {
 //fprintf(stderr, "DEBUG: %d = luaL_loadfile()\n", status);
       //lua_pop(L, narg);

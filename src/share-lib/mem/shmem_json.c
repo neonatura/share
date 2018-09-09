@@ -287,17 +287,20 @@ int shjson_bool(shjson_t *json, char *name, int def_d)
 
 int shjson_type(shjson_t *json, char *name)
 {
+	int type;
+
 	if (name) {
 		json = shjson_GetObjectItem(json, name);
 	}
 	if (!json)
 		return (SHJSON_NULL);
 
-	if (json->type == SHJSON_TRUE ||
-			json->type == SHJSON_FALSE)
+	type = json->type & 255;
+	if (type == SHJSON_TRUE ||
+			type == SHJSON_FALSE)
 		return (SHJSON_BOOLEAN);
 
-	return (json->type);
+	return (type);
 }
 
 char *shjson_astr(shjson_t *json, char *name, char *def_str)
@@ -1064,4 +1067,41 @@ shjson_t *shjson_array_get(shjson_t *json, int index)
     return (NULL);
   return (shjson_GetArrayItem(json, index));
 }
+
+void shjson_obj_append(shjson_t *item, shjson_t *obj)
+{
+	shjson_t *node;
+
+	for (node = item->child; node; node = node->next) {
+		switch ((node->type)&255)
+		{
+			case SHJSON_NULL: shjson_null_add(obj, node->string); break;
+
+			case SHJSON_FALSE:
+				shjson_bool_add(obj, node->string, FALSE); 
+				break;
+
+			case SHJSON_TRUE: shjson_bool_add(obj, node->string, TRUE); break;
+
+			case SHJSON_NUMBER: 
+				shjson_num_add(obj, node->string, shjson_num(node, NULL, 0)); 
+				break;
+
+			case SHJSON_STRING: 
+				shjson_str_add(obj, node->string, shjson_str(node, NULL, "")); 
+				break;
+
+			case SHJSON_ARRAY:
+				shjson_obj_append(node, shjson_array_add(obj, node->string));
+				break;
+
+			case SHJSON_OBJECT:
+				shjson_obj_append(node, shjson_obj_add(obj, node->string));
+				break;
+		}
+	}
+
+}
+
+
 

@@ -282,7 +282,13 @@ if (err) fprintf(stderr, "DEBUG: %d = shuser_create_priv('test')\n", err);
   err = shuser_login("test", "test", NULL);
   _TRUE(err == 0);
 
+  /* get admin account in order to remove test account. */
+	free(priv); priv = NULL;
+  err = shuser_admin_default("test", &priv);
+  _TRUE(err == 0);
+	/* remove account on behalf of admin */
   err = shuser_remove("test", priv);
+if (err) fprintf(stderr, "DEBUG: TEST: shuser_login(): err %d\n", err); 
   _TRUE(err == 0);
 
   free(test_priv);
