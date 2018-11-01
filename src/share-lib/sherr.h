@@ -196,7 +196,7 @@ static _errcode_t _share_stderr_table[] = {
 #define ERR_SRCH SHERR_SRCH
 #define ERR_IO SHERR_IO
 #define ERR_2BIG SHERR_2BIG
-#define ERR_NOEXEC ERR_NOEXEC
+#define ERR_NOEXEC SHERR_NOEXEC
 #define ERR_BADF SHERR_BADF
 #define ERR_AGAIN SHERR_AGAIN
 #define ERR_NOMEM SHERR_NOMEM

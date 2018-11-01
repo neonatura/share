@@ -127,18 +127,36 @@
 /* The data buffer linked to a posix file memory-map. */
 #define SHBUF_FMAP (1 << 1)
 
+#define SHBUF_MUTEX (1 << 2)
+
 /**
  * A memory buffer that utilizes that re-uses available memory to reduce OS overhead and dynamically grows to a user specific need.
  * @see shbuf_init shbuf_free
  *
  */
 struct shbuf_t {
+
+	/* The underlying data segment. */
   unsigned char *data;
+
+	/* The current used size of the data segment. */
   size_t data_of;
+
+	/* The current allocated space to use for the data segment. */
   size_t data_max;
+
+	/* An I/O seek offset into the data segment. */
   size_t data_pos;
+	/* Modifier flags for the data segment. */
   int flags;
+
+	/* An optional file descriptor mapping the data segment. */
   int fd;
+
+#ifdef USE_LIBPTHREAD
+	/* A mutex lock for data segment access concurrency. */
+	pthread_mutex_t lk;
+#endif
 };
 
 /*
@@ -226,6 +244,10 @@ void shbuf_pos_incr(shbuf_t *buff, size_t pos);
 size_t shbuf_idx(shbuf_t *buf, unsigned char ch);
 
 void shbuf_padd(shbuf_t *buff, size_t len);
+
+void shbuf_lock(shbuf_t *buff);
+
+void shbuf_unlock(shbuf_t *buff);
  
 /**
  * @}

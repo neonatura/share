@@ -85,6 +85,21 @@ static void shbuf_mkdir(char *path)
 
 }
 
+static void shbuf_lock_init(shbuf_t *buff)
+{
+#ifdef USE_LIBPTHREAD
+	pthread_mutexattr_t attr;
+
+	if (!buff)
+		return;
+
+	memset(&attr, 0, sizeof(attr));
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&buff->lk, &attr);
+
+  buff->flags |= SHBUF_MUTEX;
+#endif
+}
 
 shbuf_t *shbuf_map(unsigned char *data, size_t data_len)
 {
@@ -95,6 +110,7 @@ shbuf_t *shbuf_map(unsigned char *data, size_t data_len)
   buf->data_of = data_len;
   buf->data_max = data_len;
   buf->flags |= SHBUF_PREALLOC;
+	shbuf_lock_init(buf);
 
   return (buf);
 }
@@ -118,7 +134,7 @@ unsigned char *shbuf_unmap(shbuf_t *buf)
   return (data);
 }
 
-int shbuf_growmap(shbuf_t *buf, size_t data_len)
+static int __shbuf_growmap(shbuf_t *buf, size_t data_len)
 {
   struct stat st;
   size_t block_size;
@@ -203,11 +219,24 @@ int shbuf_growmap(shbuf_t *buf, size_t data_len)
   return (0);
 }
 
+int shbuf_growmap(shbuf_t *buf, size_t data_len)
+{
+	int ret_val;
+
+	shbuf_lock(buf);
+	ret_val = __shbuf_growmap(buf, data_len);
+	shbuf_unlock(buf);
+
+	return (ret_val);
+}
+
 shbuf_t *shbuf_init(void)
 {
   shbuf_t *buf;
 
   buf = (shbuf_t *)calloc(1, sizeof(shbuf_t));
+	shbuf_lock_init(buf);
+
   return (buf);
 }
 
@@ -218,7 +247,7 @@ _TEST(shbuf_init)
   shbuf_free(&buff);
 }
 
-int shbuf_grow(shbuf_t *buf, size_t data_len)
+static int __shbuf_grow(shbuf_t *buf, size_t data_len)
 {
   size_t orig_len;
   int block_len;
@@ -260,6 +289,17 @@ int shbuf_grow(shbuf_t *buf, size_t data_len)
   }
 
   return (0);
+}
+
+int shbuf_grow(shbuf_t *buf, size_t data_len)
+{
+	int ret_val;
+
+	shbuf_lock(buf);
+	ret_val = __shbuf_grow(buf, data_len);
+	shbuf_unlock(buf);
+
+	return (ret_val);
 }
 
 _TEST(shbuf_grow)
@@ -307,7 +347,7 @@ _TEST(shbuf_catstr)
   shbuf_free(&buff);
 }
 
-void shbuf_cat(shbuf_t *buf, void *data, size_t data_len)
+static void __shbuf_cat(shbuf_t *buf, void *data, size_t data_len)
 {
   int err;
 
@@ -325,6 +365,13 @@ void shbuf_cat(shbuf_t *buf, void *data, size_t data_len)
   memcpy(buf->data + buf->data_of, data, data_len);
   buf->data_of += data_len;
 
+}
+
+void shbuf_cat(shbuf_t *buf, void *data, size_t data_len)
+{
+	shbuf_lock(buf);
+	__shbuf_cat(buf, data, data_len);
+	shbuf_unlock(buf);
 }
 
 _TEST(shbuf_cat)
@@ -352,11 +399,17 @@ _TEST(shbuf_cat)
   shbuf_free(&buff);
 }
 
-void shbuf_memcpy(shbuf_t *buf, void *data, size_t data_len)
+static void __shbuf_memcpy(shbuf_t *buf, void *data, size_t data_len)
 {
   unsigned char *buf_data = shbuf_data(buf); 
   size_t buf_len = MIN(data_len, shbuf_size(buf));
   memcpy(data, buf_data, buf_len);
+}
+void shbuf_memcpy(shbuf_t *buf, void *data, size_t data_len)
+{
+	shbuf_lock(buf);
+	__shbuf_memcpy(buf, data, data_len);
+	shbuf_unlock(buf);
 }
 
 size_t shbuf_idx(shbuf_t *buf, unsigned char ch)
@@ -442,7 +495,7 @@ _TEST(shbuf_clear)
   shbuf_free(&buf);
 }
 
-void shbuf_trim(shbuf_t *buf, size_t len)
+static void __shbuf_trim(shbuf_t *buf, size_t len)
 {
   size_t nlen;
 
@@ -456,14 +509,19 @@ void shbuf_trim(shbuf_t *buf, size_t len)
   if (buf->data_of == len) {
     memset(buf->data, 0, len);
     buf->data_of = 0;
-    return;
-  }
+  } else {
+		nlen = MAX(0, (ssize_t)buf->data_of - (ssize_t)len);
+		memmove(buf->data, buf->data + len, nlen);
+		buf->data_of = nlen;
+		memset(buf->data + nlen, 0, buf->data_max - nlen);
+	}
 
-  nlen = buf->data_of - len;
-  memmove(buf->data, buf->data + len, nlen);
-  buf->data_of = nlen;
-  memset(buf->data + nlen, 0, buf->data_max - nlen);
-
+}
+void shbuf_trim(shbuf_t *buf, size_t len)
+{
+	shbuf_lock(buf);
+	__shbuf_trim(buf, len);
+	shbuf_unlock(buf);
 }
 
 _TEST(shbuf_trim)
@@ -527,12 +585,33 @@ void shbuf_dealloc(shbuf_t *buf)
   free(buf);
 }
 
+static void shbuf_lock_free(shbuf_t *buff)
+{
+#ifdef USE_LIBPTHREAD
+	if (!buff)
+		return;
+
+  if (!(buff->flags & SHBUF_MUTEX))
+		return;
+
+	pthread_mutex_destroy(&buff->lk);
+  buff->flags &= ~SHBUF_MUTEX;
+#endif
+}
+
 void shbuf_free(shbuf_t **buf_p)
 {
   shbuf_t *buf = *buf_p;
 
   if (!buf)
     return;
+
+	/* wait for any other threads to finish.. */
+	shbuf_lock(buf);
+	shbuf_unlock(buf);
+
+	/* de-alloc pthread mutex */
+	shbuf_lock_free(buf);
 
   if (buf->flags & SHBUF_PREALLOC)
     buf->data = NULL; /* prevent free on pre-alloc'd data */
@@ -635,6 +714,8 @@ int shbuf_sprintf(shbuf_t *buff, char *fmt, ...)
   if (!fmt)
     return (0);
 
+	shbuf_lock(buff);
+
   ret_len = 0;
   is_escape = FALSE;
   va_start(ap, fmt);
@@ -682,6 +763,8 @@ int shbuf_sprintf(shbuf_t *buff, char *fmt, ...)
   }
   va_end(ap);
 
+	shbuf_unlock(buff);
+
   return (ret_len);
 }
  
@@ -690,9 +773,16 @@ size_t shbuf_pos(shbuf_t *buff)
   return (buff->data_pos);
 }
 
-void shbuf_pos_set(shbuf_t *buff, size_t pos)
+static void __shbuf_pos_set(shbuf_t *buff, size_t pos)
 {
   buff->data_pos = MIN(buff->data_of, pos);
+}
+
+void shbuf_pos_set(shbuf_t *buff, size_t pos)
+{
+	shbuf_lock(buff);
+	__shbuf_pos_set(buff, pos);
+	shbuf_unlock(buff);
 }
 
 void shbuf_pos_incr(shbuf_t *buff, size_t pos)
@@ -724,6 +814,35 @@ void shbuf_padd(shbuf_t *buff, size_t len)
   }
 
 }
+
+
+
+void shbuf_lock(shbuf_t *buff)
+{
+#ifdef USE_LIBPTHREAD
+	if (!buff)
+		return;
+
+	if (!(buff->flags & SHBUF_MUTEX))
+		return;
+
+	(void)pthread_mutex_lock(&buff->lk);
+#endif
+}
+
+void shbuf_unlock(shbuf_t *buff)
+{
+#ifdef USE_LIBPTHREAD
+	if (!buff)
+		return;
+
+	if (!(buff->flags & SHBUF_MUTEX))
+		return;
+
+	(void)pthread_mutex_unlock(&buff->lk);
+#endif
+}
+
 
 #undef __MEM__SHMEM_BUF_C__
 

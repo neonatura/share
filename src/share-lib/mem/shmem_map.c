@@ -893,14 +893,11 @@ void shmap_print(shmap_t *h, shbuf_t *ret_buff)
   ssize_t len;
   int flag;
   int idx;
-  int i;
 
   if (!h || !ret_buff)
     return; /* all done */
 
-  i = 0;
-
-  for (hi = shmap_first(h); hi; hi = shmap_next(hi)) {
+  for (hi = shmap_first(h); hi && hi->tthis; hi = shmap_next(hi)) {
     shmap_self(hi, &key, &val, &len, &flag);
     if (!len || !val)
       continue;
@@ -917,15 +914,6 @@ void shmap_print(shmap_t *h, shbuf_t *ret_buff)
 
     shbuf_cat(ret_buff, &mval, sizeof(shmap_value_t));
     shbuf_cat(ret_buff, val, len);
-
-#if 0
-    hdr = (shmap_value_t *)val;
-    memcpy(&hdr->name, key, sizeof(shkey_t));
-    shbuf_cat(ret_buff, hdr, sizeof(shmap_value_t));
-    shbuf_cat(ret_buff, ((char *)val + sizeof(shmap_value_t)), hdr->sz);
-#endif
-
-    i++;
   }
 
 }
