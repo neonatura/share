@@ -530,8 +530,8 @@ _TEST(shfwrite)
   err = shftruncate(fd, 0);
   _TRUE(err == 0);
 
-  for (cycle = 0; cycle < 56; cycle++) {
-    for (idx = 0; idx < 56; idx++) {
+  for (cycle = 0; cycle < 64; cycle++) {
+    for (idx = 0; idx < 64; idx++) {
       ch = (unsigned char)((cycle * idx) % 256);
       memset(CHUNK, ch, CHUNK_SIZE);
       err = shwrite(fd, CHUNK, CHUNK_SIZE);
@@ -551,8 +551,8 @@ _TEST(shfwrite)
   _TRUE(err == 0);
 
   shrewind(fd);
-  for (cycle = 0; cycle < 56; cycle++) {
-    for (idx = 0; idx < 56; idx++) {
+  for (cycle = 0; cycle < 64; cycle++) {
+    for (idx = 0; idx < 64; idx++) {
       memset(CHUNK, 0, CHUNK_SIZE);
       err = shread(fd, CHUNK, CHUNK_SIZE);
       _TRUE(err == CHUNK_SIZE);

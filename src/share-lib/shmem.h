@@ -376,6 +376,9 @@ shkey_t *ashkey_xor(shkey_t *key1, shkey_t *key2);
 
 shkey_t *shkey_dup(shkey_t *key);
 
+shkey_t *shkey(int alg, unsigned char *data, size_t data_len);
+
+
 
 
 /**
