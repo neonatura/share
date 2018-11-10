@@ -36,6 +36,7 @@ char *shcache_path(const char *tag)
   shkey_t *key = ashkey_str(tag);
 
 #ifndef WINDOWS
+	mkdir (P_tmpdir, 0777);
   sprintf(ret_path, "%s/.shcache_%-4.4x/", P_tmpdir, (crc % 65536));
 #else
   sprintf(ret_path, "%s\\shcache_%-4.4x\\", getenv("TEMP"), (crc % 65536));
