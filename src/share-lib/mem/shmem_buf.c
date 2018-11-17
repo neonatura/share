@@ -34,6 +34,9 @@
 #endif
 
 
+#define MAX_SHBUF_SIZE 0xFFFFFFFFFFFF
+
+
 /* recursive dir generation for relative paths. */
 static void shbuf_mkdir(char *path)
 {
@@ -41,6 +44,9 @@ static void shbuf_mkdir(char *path)
   char dir[PATH_MAX+1];
 	char *s_ptr;
 	char *e_ptr;
+
+	if (!path || !*path)
+		return;
 
   memset(dir, 0, sizeof(dir));
   if (*path == '/')
@@ -106,6 +112,9 @@ shbuf_t *shbuf_map(unsigned char *data, size_t data_len)
   shbuf_t *buf;
 
   buf = (shbuf_t *)calloc(1, sizeof(shbuf_t));
+	if (!buf)
+		return (NULL);
+
   buf->data = data;
   buf->data_of = data_len;
   buf->data_max = data_len;
@@ -223,6 +232,9 @@ int shbuf_growmap(shbuf_t *buf, size_t data_len)
 {
 	int ret_val;
 
+	if (!buf)
+		return (SHERR_INVAL);
+
 	shbuf_lock(buf);
 	ret_val = __shbuf_growmap(buf, data_len);
 	shbuf_unlock(buf);
@@ -235,8 +247,10 @@ shbuf_t *shbuf_init(void)
   shbuf_t *buf;
 
   buf = (shbuf_t *)calloc(1, sizeof(shbuf_t));
-	shbuf_lock_init(buf);
+	if (!buf)
+		return (NULL);
 
+	shbuf_lock_init(buf);
   return (buf);
 }
 
@@ -252,28 +266,21 @@ static int __shbuf_grow(shbuf_t *buf, size_t data_len)
   size_t orig_len;
   int block_len;
 
-#if 0
-/* shbuf_growmap now calls shbuf_grow */
-  if (buf->fd)
-    return (shbuf_growmap(buf, data_len));
-#endif
-
-
-  block_len = ((data_len + 1) / 8192) + 1;
-  if ((block_len * 8192) <= buf->data_max)
+  block_len = ((data_len + 1) / 16384) + 1;
+  if ((block_len * 16384) <= buf->data_max)
     return (0); /* already allocated */
 
   if (buf->flags & SHBUF_FMAP)
     return (SHERR_OPNOTSUPP);
 
   orig_len = buf->data_max;
-  buf->data_max = block_len * 8192;
+  buf->data_max = block_len * 16384;
   if (!buf->data) {
     buf->data = (char *)calloc(buf->data_max, sizeof(char));
   } else {// if (buf->data_of + data_len >= buf->data_max) {
     unsigned char *orig_data = (unsigned char *)buf->data;
     buf->data = (char *)realloc(buf->data, buf->data_max);
-    if (!buf->data) { /* realloc not gauranteed */
+    if (!buf->data) { /* realloc not guaranteed */
       char *data = (char *)calloc(buf->data_max, sizeof(char));
       if (data) {
         memcpy(data, orig_data, orig_len);
@@ -295,6 +302,9 @@ int shbuf_grow(shbuf_t *buf, size_t data_len)
 {
 	int ret_val;
 
+	if (!buf)
+		return (SHERR_INVAL);
+
 	shbuf_lock(buf);
 	ret_val = __shbuf_grow(buf, data_len);
 	shbuf_unlock(buf);
@@ -305,13 +315,21 @@ int shbuf_grow(shbuf_t *buf, size_t data_len)
 _TEST(shbuf_grow)
 {
   shbuf_t *buff = shbuf_init();
+	char buf[1024];
   int i;
 
-  for (i = 10240; i < 102400; i += 10240) {
-    shbuf_grow(buff, i);
+  for (i = 0; i < 102400; i += 1024) {
+    _TRUE(0 == shbuf_grow(buff, i));
     _TRUEPTR(buff->data);
     _TRUE(buff->data_max >= i);
+		memset(buf, ((i*i)%32), sizeof(buf));
+    _TRUE(buff->data_of == i);
+		shbuf_cat(buff, buf, sizeof(buf));
   }
+  for (i = 0; i < 102400; i += 1024) {
+		memset(buf, ((i*i)%32), sizeof(buf));
+		_TRUE(0 == memcmp(shbuf_data(buff) + i, buf, sizeof(buf)));
+	}
 
   shbuf_free(&buff);
 }
@@ -351,24 +369,22 @@ static void __shbuf_cat(shbuf_t *buf, void *data, size_t data_len)
 {
   int err;
 
-  if (!buf)
-    return;
-
   err = shbuf_grow(buf, buf->data_of + data_len + 1);
-  if (err && err != SHERR_OPNOTSUPP) {
-    sherr(err, "shbuf_grow");
-#if 0
+  if (err) {// && err != SHERR_OPNOTSUPP) {
+    sherr(err, "shbuf_cat");
     return; 
-#endif
   }
 
   memcpy(buf->data + buf->data_of, data, data_len);
   buf->data_of += data_len;
-
 }
 
 void shbuf_cat(shbuf_t *buf, void *data, size_t data_len)
 {
+
+	if (!buf)
+		return;
+
 	shbuf_lock(buf);
 	__shbuf_cat(buf, data, data_len);
 	shbuf_unlock(buf);
@@ -407,6 +423,10 @@ static void __shbuf_memcpy(shbuf_t *buf, void *data, size_t data_len)
 }
 void shbuf_memcpy(shbuf_t *buf, void *data, size_t data_len)
 {
+
+	if (!buf)
+		return;
+
 	shbuf_lock(buf);
 	__shbuf_memcpy(buf, data, data_len);
 	shbuf_unlock(buf);
@@ -415,6 +435,9 @@ void shbuf_memcpy(shbuf_t *buf, void *data, size_t data_len)
 size_t shbuf_idx(shbuf_t *buf, unsigned char ch)
 {
   int i;
+
+	if (!buf)
+		return (-1);
 
   for (i = 0; i < buf->data_of; i++) {
     if (buf->data[i] == ch)
@@ -499,10 +522,16 @@ static void __shbuf_trim(shbuf_t *buf, size_t len)
 {
   size_t nlen;
 
-  if (!buf || !buf->data)
+  if (!buf->data)
     return;
 
-  len = MIN(len, buf->data_of);
+	if (len > MAX_SHBUF_SIZE) {
+    sherr(SHERR_2BIG, "shbuf_trim");
+		return;
+	}
+
+	if (len > buf->data_of)
+		len = buf->data_of;
   if (len == 0)
     return;
 
@@ -519,6 +548,10 @@ static void __shbuf_trim(shbuf_t *buf, size_t len)
 }
 void shbuf_trim(shbuf_t *buf, size_t len)
 {
+
+	if (!buf)
+		return;
+
 	shbuf_lock(buf);
 	__shbuf_trim(buf, len);
 	shbuf_unlock(buf);
