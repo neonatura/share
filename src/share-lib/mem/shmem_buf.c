@@ -639,9 +639,12 @@ void shbuf_free(shbuf_t **buf_p)
   if (!buf)
     return;
 
-	/* wait for any other threads to finish.. */
+#ifdef USE_LIBPHREAD
+	/* try to wait for other threads to finish (not atomic). */
+	pthread_yield();
 	shbuf_lock(buf);
 	shbuf_unlock(buf);
+#endif
 
 	/* de-alloc pthread mutex */
 	shbuf_lock_free(buf);

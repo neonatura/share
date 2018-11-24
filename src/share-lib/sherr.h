@@ -162,8 +162,12 @@ static _errcode_t _share_stderr_table[] = {
 	{ ETIMEDOUT, SHERR_TIMEDOUT},
 	{ ECONNREFUSED, SHERR_CONNREFUSED},
 	{ EALREADY, SHERR_ALREADY},
+#ifdef EREMOTEIO
 	{ EREMOTEIO, SHERR_REMOTEIO},
+#endif
+#ifdef ETIME
 	{ ETIME, SHERR_TIME},
+#endif
 	{ ENONET, SHERR_NONET},
 	{ ENOPKG, SHERR_NOPKG},
 	{ EREMOTE, SHERR_REMOTE},
@@ -180,11 +184,23 @@ static _errcode_t _share_stderr_table[] = {
 	{ EINPROGRESS, SHERR_INPROGRESS},
 	{ ENOMEDIUM, SHERR_NOMEDIUM},
 	{ ECANCELED, SHERR_CANCELED},
+#ifdef ENOKEY
 	{ ENOKEY, SHERR_NOKEY},
+#endif
+#ifdef EKEYEXPIRED
 	{ EKEYEXPIRED, SHERR_KEYEXPIRED},
+#endif
+#ifdef EKEYREVOKED 
 	{ EKEYREVOKED, SHERR_KEYREVOKED},
+#endif
+#ifdef EKEYREJECTED
 	{ EKEYREJECTED, SHERR_KEYREJECTED},
+#endif
+#ifdef EOWNERDEAD
 	{ EOWNERDEAD, SHERR_OWNERDEAD},
+#endif
+
+	/* terminator */
 	{ 0, 0 }
 };
 #endif
