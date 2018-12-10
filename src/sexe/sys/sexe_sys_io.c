@@ -86,6 +86,7 @@ static int tofileno(lua_State *L)
   return (p->fileno);
 }
 
+#if 0
 static int l_fprintf(int fd, char *fmt, ...)
 {
 	char buff[10240]; /* fix me */
@@ -97,6 +98,7 @@ static int l_fprintf(int fd, char *fmt, ...)
 
 	return (l_fwrite(buff, sizeof(char), strlen(buff), fd));
 }
+#endif
 
 int l_fscanf(int fd, char *fmt, void *value)
 {
