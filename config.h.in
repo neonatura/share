@@ -2550,7 +2550,7 @@
 # endif
 #endif
 
-/* Define for the AMD x86-64 architecture. */
+/* Define for the ARM 64-bit architecture. */
 #undef X86_64
 
 /* XDELTA3 */

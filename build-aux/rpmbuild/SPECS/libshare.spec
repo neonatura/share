@@ -121,12 +121,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man3/shbuf_init.3.gz
 %{_mandir}/man3/shbuf_size.3.gz
 %{_mandir}/man3/shbuf_trim.3.gz
-%{_mandir}/man3/shcrypt_ashdecode.3.gz
-%{_mandir}/man3/shcrypt_ashencode.3.gz
-%{_mandir}/man3/shcrypt_shdecode.3.gz
-%{_mandir}/man3/shcrypt_shdecode_str.3.gz
-%{_mandir}/man3/shcrypt_shencode.3.gz
-%{_mandir}/man3/shcrypt_shencode_str.3.gz
 %{_mandir}/man3/shfs_unlink.3.gz
 %{_mandir}/man3/shkey_bin.3.gz
 %{_mandir}/man3/shkey_free.3.gz

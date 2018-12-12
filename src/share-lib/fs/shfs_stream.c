@@ -357,15 +357,18 @@ int shfstream_flush(shfstream_t *stream)
 
   err = 0;
 
-  /* read in content that hasn't been streamed (until write_of exists) */
-  len = MAX(0, (ssize_t)stream->buff_max - (ssize_t)shbuf_size(stream->buff));
-  if (len) {
-    err = shfstream_alloc(stream, stream->buff_max);
-  }
-  if (!err) {
-    /* do actual write operation */
-    err = shfs_write(stream->file, stream->buff);
-  }
+	/* read in content that hasn't been streamed (until write_of exists) */
+	len = MAX(0, (ssize_t)stream->buff_max - (ssize_t)shbuf_size(stream->buff));
+	if (len) {
+		err = shfstream_alloc(stream, stream->buff_max);
+	}
+	if (stream->buff_max < shbuf_size(stream->buff)) {
+		shbuf_truncate(stream->buff, stream->buff_max);
+	}
+	if (!err) {
+		/* do actual write operation */
+		err = shfs_write(stream->file, stream->buff);
+	}
 
   stream->flags &= ~SHFS_STREAM_DIRTY;
 
