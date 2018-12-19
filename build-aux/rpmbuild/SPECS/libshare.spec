@@ -74,6 +74,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/sx
 %{_bindir}/sxc
 %{_bindir}/sxsh
+%{_bindir}/static_sx
+%{_bindir}/static_sxc
 %{_bindir}/shcert
 %{_bindir}/shdb
 %{_bindir}/shfsck
@@ -221,6 +223,38 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man3/shgeo_place_desc.3.gz
 %{_mandir}/man3/shgeo_place_prec.3.gz
 %{_mandir}/man3/shgeo_place_codes.3.gz
+%{_mandir}/man3/ashdecode.3.gz
+%{_mandir}/man3/ashencode.3.gz
+%{_mandir}/man3/shctime.3.gz
+%{_mandir}/man3/shdecode.3.gz
+%{_mandir}/man3/shdecode_str.3.gz
+%{_mandir}/man3/shdecrypt.3.gz
+%{_mandir}/man3/shdecrypt_derive.3.gz
+%{_mandir}/man3/shdecrypt_derive_verify.3.gz
+%{_mandir}/man3/shdecrypt_verify.3.gz
+%{_mandir}/man3/shencode.3.gz
+%{_mandir}/man3/shencode_str.3.gz
+%{_mandir}/man3/shencrypt.3.gz
+%{_mandir}/man3/sherr.3.gz
+%{_mandir}/man3/shgettime.3.gz
+%{_mandir}/man3/shinfo.3.gz
+%{_mandir}/man3/shlog.3.gz
+%{_mandir}/man3/shlog_level.3.gz
+%{_mandir}/man3/shlog_level_set.3.gz
+%{_mandir}/man3/shlog_path.3.gz
+%{_mandir}/man3/shlog_path_set.3.gz
+%{_mandir}/man3/shmktime.3.gz
+%{_mandir}/man3/shstrtime.3.gz
+%{_mandir}/man3/shtime.3.gz
+%{_mandir}/man3/shtime_adj.3.gz
+%{_mandir}/man3/shtime_after.3.gz
+%{_mandir}/man3/shtime_before.3.gz
+%{_mandir}/man3/shtimef.3.gz
+%{_mandir}/man3/shtimems.3.gz
+%{_mandir}/man3/shtimeu.3.gz
+%{_mandir}/man3/shutimef.3.gz
+%{_mandir}/man3/shwarn.3.gz
+
 
 
 %files devel
