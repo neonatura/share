@@ -23,7 +23,7 @@ LT_INIT
 
 version_patch=3
 AC_SUBST(version_patch)
-version_info=3:2:3
+version_info=3:2:2
 AC_SUBST(version_info)
 
 # docs

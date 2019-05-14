@@ -555,7 +555,7 @@ void shwarn(char *log_str);
 void shinfo(char *log_str);
 
 /** The directory where log files are written. */
-const char *shlog_path(void);
+const char *shlog_path(char *tag);
 
 /** Set the directory where log files are written. */
 int shlog_path_set(const char *path);

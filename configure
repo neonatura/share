@@ -13188,7 +13188,7 @@ CC="$lt_save_CC"
 
 version_patch=3
 
-version_info=3:2:3
+version_info=3:2:2
 
 
 # docs

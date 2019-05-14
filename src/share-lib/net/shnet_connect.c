@@ -27,21 +27,41 @@
 int shconnect(int sk, struct sockaddr *skaddr, socklen_t skaddr_len) 
 {
 	unsigned short usk = (unsigned short)sk;
+	struct timeval to;
   socklen_t len;
+	fd_set w_set;
+	int flag;
 	int err;
 
-  err = connect(sk, skaddr, skaddr_len);
-  if (err == -1 && errno != EINPROGRESS)
-    return (errno2sherr());
+	/* set socket non-blocking. */
+	flag = fcntl(sk, F_GETFL, 0);
+	(void)fcntl(sk, F_SETFL, O_NONBLOCK | flag);
 
+  err = connect(sk, skaddr, skaddr_len);
+  if (err == -1) {
+		if (errno != EINPROGRESS)
+			return (errno2sherr());
+
+		FD_ZERO(&w_set);
+		FD_SET(sk, &w_set);
+
+		/* wait 3s for connection. */
+		memset(&to, 0, sizeof(to)); to.tv_sec = 3;
+		err = select(sk+1, NULL, &w_set, NULL, &to);
+		if (err <= 0) {
+			if (err == 0)
+				return (SHERR_TIMEDOUT);
+			return (errno2sherr());
+		}
+	}
+
+	/* revert to original socket flags. */
+	(void)fcntl(sk, F_SETFL, flag);
   
   len = sizeof(_sk_table[usk].addr_src);
   getsockname(sk, &_sk_table[usk].addr_src, &len);
   memcpy(&_sk_table[usk].addr_dst,
       skaddr, MIN(sizeof(struct sockaddr), skaddr_len));
-
-  if (err == -1)
-    return (SHERR_INPROGRESS);
 
 /*
 	if (!(_sk_table[usk].flags & SHSK_ESP)) {

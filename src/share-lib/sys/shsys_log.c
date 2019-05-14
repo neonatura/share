@@ -56,17 +56,20 @@ int shlog_path_set(const char *path)
 	return (0);
 }
 
-const char *shlog_path(void)
+const char *shlog_path(char *tag)
 {
 
 	if (!*_log_path) {
+		if (!tag)
+			tag = "share";
+
 		/* default log directory */
 #ifdef WINDOWS
-		sprintf(_log_path, "%s\\share\\log\\", getenv("ProgramData"));
+		sprintf(_log_path, "%s\\%s\\", getenv("ProgramData"), tag);
 #else
-		sprintf(_log_path, "/var/log/share/");
+		sprintf(_log_path, "/var/log/%s/", tag);
 #endif
-		mkdir(_log_path, 0777);
+		(void)mkdir(_log_path, 0777);
 	}
 
 	return ((const char *)_log_path);
@@ -109,11 +112,12 @@ void shlog_write(shbuf_t *buff, int level, int err_code, char *log_str)
     return;
 
   if (!*log_path) {
+		char *label;
     shpeer_t peer;
 
     memcpy(&peer, ashpeer(), sizeof(peer));
-		sprintf(log_path, "%s%s.log", shlog_path(), 
-				(!*peer.label ? PACKAGE_NAME : peer.label));
+		label = (!*peer.label ? PACKAGE_NAME : peer.label);
+		sprintf(log_path, "%s%s.log", shlog_path(label), label); 
   }
   if (*log_path && !_shlog_file) {
     _shlog_file = fopen(log_path, "ab");
@@ -186,17 +190,22 @@ int shlog(int level, int err_code, char *log_str)
 
   if (!buff)
     buff = shbuf_init();
-  shbuf_clear(buff);
 
-  shlog_write(buff, level, err_code, log_str);
+	{
+		shbuf_lock(buff);
 
-  if (shbuf_data(buff) && _shlog_file) {
-    fprintf(_shlog_file, "%s", shbuf_data(buff));
-    if (last_flush < (now - MAX_FLUSH_SPAN)) {
-      fflush(_shlog_file);
-      last_flush = now;
-    }
-  }
+		shbuf_clear(buff);
+		shlog_write(buff, level, err_code, log_str);
+		if (shbuf_data(buff) && _shlog_file) {
+			fprintf(_shlog_file, "%s", shbuf_data(buff));
+			if (last_flush < (now - MAX_FLUSH_SPAN)) {
+				fflush(_shlog_file);
+				last_flush = now;
+			}
+		}
+
+		shbuf_unlock(buff);
+	}
 
   return (0);
 }
