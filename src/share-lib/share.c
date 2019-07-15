@@ -875,28 +875,30 @@ void shpref_free(void)
 
 int shpref_save(void)
 {
-  shbuf_t *buff;
+  static shbuf_t *buff;
   char *path;
   int err;
 
   if (!_local_preferences)
     return (0); /* done */
 
-#if 0
-  err = shpref_init(_local_preference_uid);
-  if (err)
-    return (err);
-#endif
+	if (!buff)
+		buff = shbuf_init();
 
-  buff = shbuf_init();
-  shmap_print(_local_preferences, buff);
-  path = shpref_path(getuid());
-  err = shfs_write_mem(path, buff->data, buff->data_of);
-  shbuf_free(&buff);
+	{
+		shbuf_lock(buff);
+
+		shbuf_clear(buff);
+		shmap_print(_local_preferences, buff);
+		path = shpref_path(getuid());
+		err = shfs_write_mem(path, buff->data, buff->data_of);
+
+		shbuf_unlock(buff);
+	}
   if (err == -1)
     return (err);
 
-  chmod(path, 0700);
+  (void)chmod(path, 0700);
 
   return (0);
 }

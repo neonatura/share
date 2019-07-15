@@ -180,16 +180,20 @@ int shlog(int level, int err_code, char *log_str)
 	if (level < _log_level)
 		return (0);
 
+  if (!buff)
+    buff = shbuf_init();
+	if (!buff)
+		return (ERR_NOMEM);
+
   now = time(NULL);
   day = now / 86400; 
   if (day != last_day) {
     // shlog_zcompr();  /* compress .YY.WW bin log file, removing prev zip */
+		shbuf_lock(buff);
     shlog_free();
+		shbuf_unlock(buff);
   }
   last_day = day;
-
-  if (!buff)
-    buff = shbuf_init();
 
 	{
 		shbuf_lock(buff);

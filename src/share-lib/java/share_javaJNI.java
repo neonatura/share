@@ -20,7 +20,6 @@ public class share_javaJNI {
   }
 
   public final static native int test_main();
-  public final static native String get_libshare_email();
   public final static native String get_libshare_version();
   public final static native String get_libshare_title();
   public final static native String get_libshare_path();

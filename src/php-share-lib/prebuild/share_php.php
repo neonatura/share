@@ -31,10 +31,6 @@ abstract class share_php {
 		return test_main();
 	}
 
-	static function get_libshare_email() {
-		return get_libshare_email();
-	}
-
 	static function get_libshare_version() {
 		return get_libshare_version();
 	}

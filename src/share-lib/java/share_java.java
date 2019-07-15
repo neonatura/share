@@ -13,10 +13,6 @@ public class share_java {
     return share_javaJNI.test_main();
   }
 
-  public static String get_libshare_email() {
-    return share_javaJNI.get_libshare_email();
-  }
-
   public static String get_libshare_version() {
     return share_javaJNI.get_libshare_version();
   }

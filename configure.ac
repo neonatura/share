@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT(libshare, 3.2)
+AC_INIT(libshare, 4.0)
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR([src/share-lib])
@@ -11,23 +11,14 @@ AC_CONFIG_HEADERS([src/share-lib/test_libshare.c])
 AC_CONFIG_HEADERS([src/php-share-lib/libshare_php.i])
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_SUBST([with_kernel], [`uname -r`])
-AC_SUBST([with_kerneldir], [/lib/modules/$with_kernel])
-AC_PATH_KERNEL_SOURCE
-AC_SUBST([KERNEL_SRC], [$with_kerneldir/build])
-AC_SUBST([KERNEL_MOD], [$with_kerneldir/extra])
-AM_CONDITIONAL([KERNEL_2_6_32], [test `uname -r|cut -d- -f1` = "2.6.32"])
-AM_CONDITIONAL([KMOD_DIR], [test -f /lib/modules/`uname -r`/build])
-
 LT_INIT
 
-version_patch=3
+version_patch=0
 AC_SUBST(version_patch)
-version_info=3:2:2
+version_info=4:0:0
 AC_SUBST(version_info)
 
 # docs
-AC_CONFIG_FILES([doc/RFC/RFC-ESTP-DRAFT.txt])
 AC_CONFIG_FILES([doc/NEWS])
 
 AC_CONFIG_FILES([bin/README.txt], [chmod -wx bin/README.txt])
@@ -48,13 +39,6 @@ AC_CONFIG_FILES([src/php-share-lib/test_libshare_php.sh], [chmod a+rx src/php-sh
 AC_CONFIG_FILES([src/php-share-lib/test_libshare_fs.sh], [chmod a+rx src/php-share-lib/test_libshare_fs.sh])
 AC_CONFIG_FILES([src/sexe/test_sexe.sh], [chmod a+rx src/sexe/test_sexe.sh])
 AC_CONFIG_FILES([release.sh], [chmod a+rwx release.sh])
-
-AC_CONFIG_FILES([module/2.6.32/shnet/Makefile])
-AC_CONFIG_FILES([module/2.6.32/shnet/shesp.c])
-AC_CONFIG_FILES([module/2.6.32/shnet/shesp_csum.c])
-AC_CONFIG_FILES([module/2.6.32/shnet/shesp_dict.c])
-AC_CONFIG_FILES([module/2.6.32/shnet/shesp_ipv4.c])
-AC_CONFIG_FILES([module/2.6.32/shnet/shesp.h])
 
 AC_CONFIG_FILES([src/sexe/sexe.c])
 
@@ -498,4 +482,4 @@ AC_DEFINE_UNQUOTED([POLARSSL_RSA_C], 1, [X509])
 AC_DEFINE_UNQUOTED([POLARSSL_BIGNUM_C], 1, [X509])
 AC_DEFINE_UNQUOTED([POLARSSL_PLATFORM_C], 1, [X509])
 
-AC_OUTPUT(Makefile src/gnu/Makefile src/share-lib/java/Makefile src/share-lib/Makefile src/sexe/Makefile src/sexe/shell/Makefile src/java-share-lib/Makefile src/php-share-lib/Makefile src/share-util/Makefile doc/libshare/Makefile doc/sexe/Makefile doc/share-util/Makefile doc/java-share-lib/Makefile doc/php-share-lib/Makefile examples/Makefile include/Makefile module/Makefile bin/Makefile db/Makefile)
+AC_OUTPUT(Makefile src/gnu/Makefile src/share-lib/java/Makefile src/share-lib/Makefile src/sexe/Makefile src/sexe/shell/Makefile src/java-share-lib/Makefile src/php-share-lib/Makefile src/share-util/Makefile doc/libshare/Makefile doc/sexe/Makefile doc/share-util/Makefile doc/java-share-lib/Makefile doc/php-share-lib/Makefile examples/Makefile include/Makefile bin/Makefile db/Makefile)

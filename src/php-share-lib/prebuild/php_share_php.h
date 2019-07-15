@@ -31,7 +31,6 @@ PHP_RSHUTDOWN_FUNCTION(share_php);
 PHP_MINFO_FUNCTION(share_php);
 
 ZEND_NAMED_FUNCTION(_wrap_test_main);
-ZEND_NAMED_FUNCTION(_wrap_get_libshare_email);
 ZEND_NAMED_FUNCTION(_wrap_get_libshare_version);
 ZEND_NAMED_FUNCTION(_wrap_get_libshare_title);
 ZEND_NAMED_FUNCTION(_wrap_get_libshare_path);

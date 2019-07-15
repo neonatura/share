@@ -780,18 +780,6 @@ SWIGEXPORT jint JNICALL Java_net_sharelib_share_1javaJNI_test_1main(JNIEnv *jenv
 }
 
 
-SWIGEXPORT jstring JNICALL Java_net_sharelib_share_1javaJNI_get_1libshare_1email(JNIEnv *jenv, jclass jcls) {
-  jstring jresult = 0 ;
-  char *result = 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  result = (char *)get_libshare_email();
-  if (result) jresult = (*jenv)->NewStringUTF(jenv, (const char *)result);
-  return jresult;
-}
-
-
 SWIGEXPORT jstring JNICALL Java_net_sharelib_share_1javaJNI_get_1libshare_1version(JNIEnv *jenv, jclass jcls) {
   jstring jresult = 0 ;
   char *result = 0 ;

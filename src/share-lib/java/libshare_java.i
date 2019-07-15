@@ -53,7 +53,6 @@ typedef uint64_t shtime_t;
   }
 %}
 int test_main(void);
-char *get_libshare_email(void);
 char *get_libshare_version(void);
 char *get_libshare_title(void);
 const char *get_libshare_path(void);

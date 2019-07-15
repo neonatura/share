@@ -46,13 +46,5 @@ public class Share
     return (share_java.get_libshare_title());
   }
 
-  /**
-   * The libshare suite bug report email address.
-   */
-  static public String getLibraryEmail()
-  {
-    return (share_java.get_libshare_email());
-  }
-
 }
 
