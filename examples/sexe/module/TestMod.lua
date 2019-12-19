@@ -6,7 +6,7 @@ require 'TestSettings'
 Settings = nil
 
 TestMod = {}
--- The same basic affect can be created by removing he module() and line above and adding the following..
+-- The same basic affect can be created by removing the module() and line above and adding the following..
 --if TestMod then return end
 --TestMod = {}
 --local TestMod = TestMod

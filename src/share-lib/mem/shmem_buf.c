@@ -336,6 +336,10 @@ _TEST(shbuf_grow)
 
 void shbuf_catstr(shbuf_t *buf, char *data)
 {
+
+	if (!data)
+		return;
+
   shbuf_cat(buf, (unsigned char *)data, strlen(data));
 }
 
