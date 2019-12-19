@@ -1,12 +1,12 @@
 Name:           libshare
-Version:        4.0
+Version:        4.1
 Release:        1%{?dist}
 Summary:        The share library suite.
 
 Group:          System Environment/Libraries
 License:        GPLv3+
 URL:            http://www.sharelib.net/
-Source0:        ftp://ftp.sharelib.net/release/libshare/libshare-4.0.tar.gz
+Source0:        ftp://ftp.sharelib.net/release/libshare/libshare-4.1.tar.gz
 
 #BuildRequires:  gcc-java, java-1.8.0-openjdk-devel, swig, help2man, doxygen
 #Requires:       java-1.8.0-openjdk
@@ -266,5 +266,5 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-*  Wed Jul 31 2019 Neo Natura <support@neo-natura.com> - 4.0
+*  Wed Dec 18 2019 Neo Natura <support@neo-natura.com> - 4.1
 - The RPM release of the libshare software suite.
