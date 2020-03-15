@@ -21,38 +21,20 @@
 
 #include "share.h"
 
-
-
-static shkey_t *esl_key(int sk)
+static esl_key *get_esl_key(int sk)
 {
+  uint8_t *raw;
   unsigned int usk;
 
 	usk = (unsigned short)sk;
   if (usk >= USHORT_MAX)
     return (NULL);
 
-  return (&_sk_table[usk].key);
+	raw = (uint8_t *)&_sk_table[usk].key;
+  return ((esl_key *)(raw + 4));
 }
 
-static void esl_key_merge(int sk, shkey_t *m_key)
-{
-  shkey_t *e_key;
-  unsigned int usk;
-
-  if (!m_key)
-    return;
-
-	usk = (unsigned short)sk;
-  if (usk >= USHORT_MAX)
-    return;
-
-  e_key = shkey_xor(m_key, esl_key(sk));
-  memcpy(esl_key(sk), e_key, sizeof(shkey_t));
-  shkey_free(&e_key);
-}
-
-
-int esl_control(int sk, int mode, shkey_t *key) 
+int esl_control(int sk, int mode, esl_key *key) 
 {
   esl_t sec;
   unsigned int usk;
@@ -62,6 +44,7 @@ int esl_control(int sk, int mode, shkey_t *key)
   if (usk >= USHORT_MAX)
     return (SHERR_BADF);
 
+	/* prep esl packet header */
   memset(&sec, 0, sizeof(esl_t));
   sec.s_magic = SHMEM16_MAGIC;
   sec.s_ver = htons(SHNET_ENCRYPT_PROTO_VERSION);
@@ -70,14 +53,15 @@ int esl_control(int sk, int mode, shkey_t *key)
 
   /* append control to outgoing buffer */
   shnet_write_buf(sk, (unsigned char *)&sec, sizeof(sec));
-
 }
 
 /**
  * Initiate a secure connection.
  */
-int esl_connect(char *hostname, int port, shkey_t *eslkey)
+int esl_connect(char *hostname, int port, shkey_t *in_key)
 {
+	uint8_t t_eslkey[16];
+	esl_key *eslkey;
   shpeer_t *peer;
   int sk;
   int err;
@@ -86,66 +70,74 @@ int esl_connect(char *hostname, int port, shkey_t *eslkey)
   if (sk < 0)
     return (sk);
 
-  peer = NULL;
+	eslkey = NULL;
+	if (in_key)
+		eslkey = (esl_key *)( ((uint8_t *)in_key) + 4 );
+
   if (!eslkey) {
-    peer = shpeer_init("esl", hostname);
-    eslkey = shapp_kpub(peer);
+		uint64_t val;
+
+		memset(t_eslkey, 0, sizeof(t_eslkey));
+
+		val = shrand();
+		memcpy(t_eslkey, &val, sizeof(val));
+		val = shrand();
+		memcpy(t_eslkey + 8, &val, sizeof(val));
+
+		eslkey = (esl_key *)&t_eslkey;
   }
 
   err = esl_control(sk, ESL_INIT_CERT, eslkey);
   if (err) {
-    shpeer_free(&peer);
     return (err);
-}
+	}
 
-  memcpy(esl_key(sk), eslkey, sizeof(shkey_t));
-
-    shpeer_free(&peer);
+	{
+		shkey_t *p_key = &_sk_table[sk].key;
+		memset(p_key, 0, sizeof(shkey_t));
+		if (in_key)
+			memcpy(p_key, in_key, sizeof(shkey_t));
+		memcpy((uint8_t *)p_key + 4, eslkey, 16);
+	}
 
   return (sk);
 }
 
-int esl_write_data(int sk, unsigned char *data, size_t *data_len_p)
+int esl_write_data(int sk, unsigned char *data, size_t data_len)
 {
+	static unsigned char pkt[65536];
   esl_data_t hdr;
-  unsigned char *raw_data;
-  shkey_t *key;
-  size_t data_len = *data_len_p;
   ssize_t w_len;
   size_t b_len;
   size_t b_of;
   size_t raw_data_len;
   unsigned int usk = (unsigned int)sk;
+	int enc_len;
   int err;
 
   if (usk >= USHORT_MAX)
     return (SHERR_BADF);
 
   w_len = 0;
-  key = esl_key(sk);
-  for (b_of = 0; b_of < data_len; b_of += b_len) {
-    b_len = MIN(8192, (data_len - b_of));
+	for (b_of = 0; b_of < data_len; b_of += b_len) {
+		b_len = MIN(65536, (data_len - b_of));
+		enc_len = (int)((b_len + 7) / 8) * 8;
 
+		/* esl protocol data header */
+		memset(&hdr, 0, sizeof(hdr));
+		hdr.s_magic = SHMEM16_MAGIC;
+		hdr.s_mode = htons(ESL_DATA);
+		hdr.s_crc = ESL_CHECKSUM(data + b_of, b_len); /* crc of decoded data */ 
+		hdr.s_size = htons(b_len); /* size of decoded data */
+		shnet_write_buf(sk, (unsigned char *)&hdr, sizeof(hdr));
 
-    /* encode using encrypt key */
-    err = shencode(data + b_of, b_len, &raw_data, &raw_data_len, key);
-    if (err)
-      return (err);
+		/* encode data payload */
+		memset(pkt, 0, enc_len);
+		memcpy(pkt, data + b_of, b_len);
+		TEA_encrypt_data(pkt, enc_len, (uint32_t *)get_esl_key(sk));
+		shnet_write_buf(sk, pkt, enc_len);
+	}
 
-    /* esl protocol data header */
-    memset(&hdr, 0, sizeof(hdr));
-    hdr.s_magic = SHMEM16_MAGIC;
-    hdr.s_crc = ESL_CHECKSUM(data + b_of, b_len); /* crc of decoded data */ 
-    hdr.s_size = htons(raw_data_len); /* size of encoded data */
-
-    shnet_write_buf(sk, (unsigned char *)&hdr, sizeof(hdr));
-    shnet_write_buf(sk, raw_data, raw_data_len);
-
-    /* deallocate resources */
-    free(raw_data);
-  }
-
-  *data_len_p = b_of;
   return (0);
 }
 
@@ -173,7 +165,7 @@ ssize_t esl_write(int sk, const void *data, size_t data_len)
     return (SHERR_AGAIN);
   }
 
-  err = esl_write_data(sk, (unsigned char *)data, &data_len);
+  err = esl_write_data(sk, (unsigned char *)data, data_len);
   if (err)
     return ((ssize_t)err);
 
@@ -183,7 +175,6 @@ ssize_t esl_write(int sk, const void *data, size_t data_len)
 
   return ((ssize_t)data_len);
 }
-
 
 static int esl_read_ctrl(int sk, shbuf_t *rbuff)
 {
@@ -200,86 +191,79 @@ static int esl_read_ctrl(int sk, shbuf_t *rbuff)
     return (SHERR_AGAIN);
 
   memcpy(&hdr, shbuf_data(rbuff), sizeof(esl_t));
-  hdr.s_mode = ntohs(hdr.s_mode);
 
+	hdr.s_ver = ntohs(hdr.s_ver);
+  if (hdr.s_ver < MIN_SHNET_ENCRYPT_PROTO_VERSION)
+		return (SHERR_OPNOTSUPP);
+
+  hdr.s_mode = ntohs(hdr.s_mode);
   if (hdr.s_mode == ESL_INIT_CERT) {
     /* this socket initiated the connection */
     shkey_t *p_key = &_sk_table[usk].key;
-    shkey_t *c_key;
-    if (!shkey_cmp(p_key, ashkey_blank()) &&
-        !shkey_cmp(p_key, &hdr.s_key)) {
-      /* client did not send pre-defined key for listen socket. */
-      shnet_close(sk);
-      return (SHERR_ACCESS);
+
+    if (shkey_cmp(p_key, ashkey_blank())) {
+			/* use client's key */
+			memcpy(&p_key->code, &hdr.s_key, sizeof(esl_key));
+		} else {
+			/* require client has server key. */
+			if (0 != memcmp((uint8_t *)p_key + 4, &hdr.s_key, 16)) {
+				/* client did not send pre-defined key for listen socket. */
+				shnet_close(sk);
+				return (SHERR_ACCESS);
+			}
     }
 
-    /* merge orig key sent with received key */
-    c_key = shkey_bin((char *)&_sk_table[usk].addr_dst,
-        sizeof(struct sockaddr));
-    memcpy(p_key, c_key, sizeof(shkey_t));
-    shkey_free(&c_key);
-  }
-
-  if (hdr.s_mode == ESL_INIT_CERT ||
-      hdr.s_mode == ESL_INIT_PRIV) {
+		_sk_table[usk].flags |= SHNET_CRYPT;
+  } else if(hdr.s_mode == ESL_INIT_PRIV) {
     /* receiver of public handshake. */
-    esl_key_merge(sk, &hdr.s_key);
     _sk_table[usk].flags |= SHNET_CRYPT;
-  } 
+	}
 
   shbuf_trim(rbuff, sizeof(esl_t));
   return (0);
 }
 
-
 static int esl_read_data(int sk, shbuf_t *rbuff, shbuf_t *pbuff)
 {
+	static unsigned char pkt[65536];
   esl_data_t hdr;
-  char *raw_data;
+  uint8_t *raw_data;
   unsigned int usk;
   size_t raw_data_len;
+	size_t enc_len;
   int err;
 
 	usk = (unsigned short)sk;
   if (usk >= USHORT_MAX)
     return (SHERR_BADF);
 
-  if (shbuf_size(rbuff) < sizeof(esl_data_t)) {
+  if (shbuf_size(rbuff) < sizeof(esl_data_t))
     return (SHERR_AGAIN);
-  }
 
+	/* esl data packet header */
   memcpy(&hdr, shbuf_data(rbuff), sizeof(hdr));
   hdr.s_size = ntohs(hdr.s_size);
-
-  if (shbuf_size(rbuff) < (hdr.s_size + sizeof(hdr))) {
-    return (SHERR_AGAIN);
-  }
-
+	enc_len = (int)((hdr.s_size + 7) / 8) * 8; /* 8b boundary */
+  if (shbuf_size(rbuff) < (enc_len + sizeof(esl_data_t)))
+    return (SHERR_AGAIN); /* incomplete */
   shbuf_trim(rbuff, sizeof(hdr));
 
-  if (hdr.s_size == 0) {
-return (SHERR_AGAIN);
-  }
-
-  raw_data = NULL;
-  raw_data_len = 0;
-  err = shdecode(shbuf_data(rbuff), (size_t)hdr.s_size,
-    &raw_data, &raw_data_len, esl_key(sk));
-  if (err)
-    return (err);
+	/* decrypt data payload */
+	memset(pkt, 0, enc_len);
+	memcpy(pkt, shbuf_data(rbuff), enc_len);
+	TEA_decrypt_data(pkt, enc_len, (uint32_t *)get_esl_key(sk));
 
   /* verify checksum */
-  if (hdr.s_crc != ESL_CHECKSUM(raw_data, raw_data_len)) {
-    free(raw_data);
+  if (hdr.s_crc != ESL_CHECKSUM(pkt, hdr.s_size)) {
+		/* invalid key */
     return (SHERR_ILSEQ);
   }
 
   /* clear incoming encoded segment. */
-  shbuf_trim(rbuff, (size_t)hdr.s_size);
+  shbuf_trim(rbuff, (size_t)enc_len);
   
   /* append to processed data buffer */
-  shbuf_cat(pbuff, raw_data, raw_data_len);
-  free(raw_data);
+  shbuf_cat(pbuff, pkt, (size_t)hdr.s_size);
 
   return (0); 
 }
@@ -347,6 +331,7 @@ int esl_readb(int sk, shbuf_t *in_buff)
    
   return (0);
 }
+
 ssize_t esl_read(int sk, const void *data, size_t data_len)
 {
   shbuf_t *in_buff;
@@ -391,6 +376,24 @@ int esl_bind(int port)
   return (sk);
 }
 
+int esl_bind_host(char *host, int port)
+{
+  int err;
+  int sk;
+
+  sk = shnet_sk();
+  if (sk < 0)
+    return (sk);
+
+  err = shnet_bindsk(sk, host, port); 
+  if (err < 0) {
+    close(sk);
+    return (err);
+  }
+
+  return (sk);
+}
+
 int esl_accept(int sk)
 {
   shkey_t *key;
@@ -408,12 +411,10 @@ int esl_accept(int sk)
   if (usk >= USHORT_MAX)
     return (SHERR_IO);
 
-   memcpy(esl_key(l_sk), esl_key(sk), sizeof(shkey_t));
+	/* inherit bound socket's key */
+	memcpy(&_sk_table[usk].key, &_sk_table[sk].key, sizeof(shkey_t));
 
-  /* send priveleged handshake. */
-  key = shkey_bin((char *)&_sk_table[usk].addr_dst, sizeof(struct sockaddr));
-  err = esl_control(l_sk, ESL_INIT_PRIV, key); 
-  shkey_free(&key);
+  err = esl_control(l_sk, ESL_INIT_PRIV, get_esl_key(l_sk));
   if (err)
     return (err);
 
@@ -433,7 +434,6 @@ void esl_key_set(int sk, shkey_t *key)
 
   memcpy(&_sk_table[usk].key, key, sizeof(shkey_t)); 
 }
-
 
 int esl_verify(int sk)
 {
@@ -466,3 +466,4 @@ int esl_verify(int sk)
 
   return (err);
 }
+

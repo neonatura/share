@@ -52,6 +52,9 @@ char *shcrc_hex(void *data, size_t data_len);
 #define shcrc16(_data, _data_len) \
   (uint16_t)(shcrc((_data), (_data_len)) & 0xFFFF)
 
+/* Generates 16-bit endian-safe checksum number. */
+uint16_t shcrc_htons(void *data, size_t data_len);
+
 /**
  * Prints the checksum in a custom 56bit ascii code.
  */

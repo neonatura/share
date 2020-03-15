@@ -562,7 +562,9 @@ int shnet_track_prune(char *name);
 /**
  * The initial version for the encrypted socket protocol
  */
-#define SHNET_ENCRYPT_PROTO_VERSION 1
+#define SHNET_ENCRYPT_PROTO_VERSION 2
+
+#define MIN_SHNET_ENCRYPT_PROTO_VERSION 2
 
 /**
  * A secure socket mode indicating a 'data' operation (no-op).
@@ -585,10 +587,12 @@ int shnet_track_prune(char *name);
  */
 #define ESL_INIT_CONFIRM 4
 
-
+/* Compute a checksum for an ESL data packet. */
 #define ESL_CHECKSUM(_data, _data_len) \
-  (htons(shcrc((_data), (_data_len)) & 0xFFFF))
+  (shcrc_htons((_data), (_data_len)))
 
+
+typedef uint32_t esl_key[4];
 
 /**
  * Control header for the Encrypted Socket Layer (ESL) handshake negotiation.
@@ -604,32 +608,24 @@ typedef struct esl_t
 
   uint16_t s_flag;
 
-  shkey_t s_key;
-
+	esl_key s_key;
 } esl_t;
-
 
 /**
  * Stream header for the Sharelib Secure Protocol (ESL) handshake negotiation.
  */
 typedef struct esl_data_t
 {
-  /** a magic arbitraty number to verify transmission integrity. */
+	/* esl_t (4b) */
   uint16_t s_magic;
-
-  /** set to '0' to indicate a data packet */
   uint16_t s_mode;
 
-  /** a checksum of the decoded data segment. */
+  /** a checksum of the unencoded data segment. */
   uint16_t s_crc;
 
   /** size of the underlying encode data segment */
   uint16_t s_size;
 } esl_data_t;
-
-
-
-
 
 /**
  * Fill a buffer from a ESL stream.
@@ -660,6 +656,9 @@ int esl_connect(char *hostname, int port, shkey_t *eslkey);
  * Listen for incoming ESL connections on a TCP port.
  */
 int esl_bind(int port);
+
+/** Listen for incoming ESL connections on a TCP port and a specific host-bound network interface. */
+int esl_bind_host(char *host, int port);
 
 /**
  * Accept a new incoming ESL connection.

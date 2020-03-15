@@ -154,7 +154,7 @@ int shdecrypt_bin(shbuf_t *buff, uint32_t *k, size_t k_len, unsigned char *data,
 }
 
 
-static void TEA_encrypt_data(uint8_t *data, uint32_t len, uint32_t * key)
+void TEA_encrypt_data(uint8_t *data, uint32_t len, uint32_t * key)
 {
   uint32_t blocks, i;
   uint32_t * data32;
@@ -165,23 +165,12 @@ static void TEA_encrypt_data(uint8_t *data, uint32_t len, uint32_t * key)
   // Find the number of 8 byte blocks, add one for the length
   blocks = (len / 8);
 
-#if 0
-  // Set the last block to the original data length
-  data32[(blocks*2) - 1] = *len;
-#endif
-
-#if 0
-  // Set the encrypted data length
-  *len = blocks * 8;
-#endif
-
-  for(i = 0; i< blocks; i++)
-  {
+  for (i = 0; i< blocks; i++)
     TEA_encrypt(&data32[i*2], key);
-  }
+
 }
 
-static void TEA_decrypt_data(uint8_t *data, uint32_t len, uint32_t * key)
+void TEA_decrypt_data(uint8_t *data, uint32_t len, uint32_t *key)
 {
    uint32_t blocks, i;
    uint32_t * data32;
@@ -196,11 +185,6 @@ static void TEA_decrypt_data(uint8_t *data, uint32_t len, uint32_t * key)
    {
       TEA_decrypt(&data32[i*2], key);
    }
-
-#if 0
-   // Return the length of the original data
-   *len = data32[(blocks*2) - 1];
-#endif
 }
 
 int ashencode(char *data, size_t *data_len_p, shkey_t *key)

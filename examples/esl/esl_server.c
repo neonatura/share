@@ -102,6 +102,7 @@ void main_esl_server(int sk)
     run_state = FALSE;
     return;
   }
+  printf("info: reading %d bytes from socket.\n", raw_len);
 
   /* read file from socket */
   of = 0;

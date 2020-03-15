@@ -393,6 +393,32 @@ uint64_t shcrc(void *data, size_t data_len)
   ret_val = htonll(ret_val);
   return (ret_val);
 }
+uint16_t shcrc_htons(void *data, size_t data_len)
+{
+  unsigned char *raw_data = (unsigned char *)data;
+  uint64_t b = 0;
+  uint64_t d = 0;
+  uint32_t a = 1, c = 1;
+  uint64_t ret_val;
+  char num_buf[8];
+  int *num_p;
+  int idx;
+  if (raw_data) {
+    num_p = (int *)num_buf;
+    for (idx = 0; idx < data_len; idx += 4) {
+      memset(num_buf, 0, 8);
+      memcpy(num_buf, raw_data + idx, MIN(4, data_len - idx));
+      a = (a + *num_p);
+      b = (b + a);
+      c = (c + raw_data[idx]) % MOD_SHCRC;
+      d = (d + c) % MOD_SHCRC;
+    }
+  }
+  ret_val = ((d << 16) | c);
+  ret_val += ((b << 32) | a);
+  ret_val = htons(ret_val & 0xFFFF);
+  return (ret_val);
+}
 char *shcrc_hex(void *data, size_t data_len)
 {
 	static char ret_str[64];

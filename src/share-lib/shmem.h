@@ -3058,7 +3058,9 @@ int shencrypt_derive(shesig_t *cert, shalg_t pub, shbuf_t *buff, unsigned char *
 
 int shdecrypt_derive_verify(shesig_t *cert, shalg_t pub);
 
+void TEA_decrypt_data(uint8_t *data, uint32_t len, uint32_t *key);
 
+void TEA_encrypt_data(uint8_t *data, uint32_t len, uint32_t *key);
 
 
 /**
