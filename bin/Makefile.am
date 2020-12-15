@@ -29,8 +29,8 @@ noinst_PROGRAMS = \
 if WINDOWS
 else
 noinst_SCRIPTS += \
-	libshare.so libshare.so.4 \
-	libshare.so.4.0.$(version_patch)
+	libshare.so libshare.so.5 \
+	libshare.so.5.0.$(version_patch)
 endif
 if HAVE_DOXYGEN
 noinst_SCRIPTS += html man
@@ -65,11 +65,11 @@ libshare.a:
 libshare.so:
 	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so . 
 
-libshare.so.4:
-	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.4 .
+libshare.so.5:
+	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.5 .
 
-libshare.so.4.0.$(version_patch):
-	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.4.0.$(version_patch) .
+libshare.so.5.0.$(version_patch):
+	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.5.0.$(version_patch) .
 
 
 sx$(EXEEXT):

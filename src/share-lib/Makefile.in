@@ -3204,6 +3204,7 @@ libshare_a_SOURCES = $(common_INCLUDES) $(common_sources) $(zlib_sources) \
 	$(top_srcdir)/src/share-lib/test/shtest.c
 
 libshare_a_CFLAGS = $(AM_CFLAGS) \
+	-fPIC \
 	-DHAVE_CONFIG_H -DSHARELIB=1 \
 	-I$(srcdir)/net -I$(srcdir)/fs -I$(srcdir)/mem \
 	-I$(srcdir)/mem/zlib \

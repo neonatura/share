@@ -103,7 +103,7 @@ readsexe_CFLAGS= -lm -Wall -DSEXELIB \
 
 libshare_sexe_a_SOURCES = $(common_includes) $(common_sources) sexe_api.c
 libshare_sexe_a_LIBADD = $(top_builddir)/src/share-lib/libshare.a
-libshare_sexe_a_CFLAGS = -Wall -DSEXELIB \
+libshare_sexe_a_CFLAGS = -fPIC -Wall -DSEXELIB \
 	-I$(top_srcdir)/src/share-lib
 
 libshare_sexe_la_SOURCES = $(common_includes) $(common_sources) sexe_api.c

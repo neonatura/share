@@ -95,8 +95,8 @@ noinst_PROGRAMS = sx$(EXEEXT) sxc$(EXEEXT) readsexe$(EXEEXT) \
 	shpatch$(EXEEXT) shstat$(EXEEXT) shpref$(EXEEXT) \
 	shpasswd$(EXEEXT) shpkg$(EXEEXT) shrev$(EXEEXT) shrm$(EXEEXT)
 @WINDOWS_FALSE@am__append_1 = \
-@WINDOWS_FALSE@	libshare.so libshare.so.4 \
-@WINDOWS_FALSE@	libshare.so.4.0.$(version_patch)
+@WINDOWS_FALSE@	libshare.so libshare.so.5 \
+@WINDOWS_FALSE@	libshare.so.5.0.$(version_patch)
 
 @HAVE_DOXYGEN_TRUE@am__append_2 = html man
 subdir = bin
@@ -1280,9 +1280,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign bin/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu bin/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign bin/Makefile
+	  $(AUTOMAKE) --gnu bin/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -1649,11 +1649,11 @@ libshare.a:
 libshare.so:
 	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so . 
 
-libshare.so.4:
-	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.4 .
+libshare.so.5:
+	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.5 .
 
-libshare.so.4.0.$(version_patch):
-	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.4.0.$(version_patch) .
+libshare.so.5.0.$(version_patch):
+	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.5.0.$(version_patch) .
 
 sx$(EXEEXT):
 	ln -sf $(top_builddir)/src/sexe/.libs/sx$(EXEEXT) .
