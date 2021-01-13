@@ -13,6 +13,9 @@
 #define lua_c
 
 #include "sexe.h"
+#include "lauxlib.h"
+
+extern void luaL_openlibs (lua_State *L);
 
 static char *process_path;
 static char process_name[PATH_MAX+1];

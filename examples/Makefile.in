@@ -203,7 +203,7 @@ CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
 am_card_login_OBJECTS = card_login-card_login.$(OBJEXT)
 card_login_OBJECTS = $(am_card_login_OBJECTS)
-card_login_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.a
+card_login_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.la
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -213,25 +213,34 @@ card_login_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_esl_client_OBJECTS = esl_client-esl_client.$(OBJEXT)
 esl_client_OBJECTS = $(am_esl_client_OBJECTS)
-esl_client_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.a
+esl_client_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.la
 esl_client_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(esl_client_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_esl_server_OBJECTS = esl_server-esl_server.$(OBJEXT)
 esl_server_OBJECTS = $(am_esl_server_OBJECTS)
-esl_server_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.a
+esl_server_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.la
 esl_server_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(esl_server_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_shkeystore_OBJECTS = shkeystore.$(OBJEXT)
+am_shkeystore_OBJECTS = shkeystore-shkeystore.$(OBJEXT)
 shkeystore_OBJECTS = $(am_shkeystore_OBJECTS)
-shkeystore_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.a
-am_shpeer_OBJECTS = shpeer.$(OBJEXT)
+shkeystore_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.la
+shkeystore_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(shkeystore_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_shpeer_OBJECTS = shpeer-shpeer.$(OBJEXT)
 shpeer_OBJECTS = $(am_shpeer_OBJECTS)
-shpeer_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.a
-am_shproc_lock_OBJECTS = shproc_lock.$(OBJEXT)
+shpeer_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.la
+shpeer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(shpeer_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_shproc_lock_OBJECTS = shproc_lock-shproc_lock.$(OBJEXT)
 shproc_lock_OBJECTS = $(am_shproc_lock_OBJECTS)
-shproc_lock_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.a
+shproc_lock_DEPENDENCIES = $(top_builddir)/src/share-lib/libshare.la
+shproc_lock_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(shproc_lock_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -249,8 +258,10 @@ depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/card_login-card_login.Po \
 	./$(DEPDIR)/esl_client-esl_client.Po \
-	./$(DEPDIR)/esl_server-esl_server.Po ./$(DEPDIR)/shkeystore.Po \
-	./$(DEPDIR)/shpeer.Po ./$(DEPDIR)/shproc_lock.Po
+	./$(DEPDIR)/esl_server-esl_server.Po \
+	./$(DEPDIR)/shkeystore-shkeystore.Po \
+	./$(DEPDIR)/shpeer-shpeer.Po \
+	./$(DEPDIR)/shproc_lock-shproc_lock.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -326,15 +337,7 @@ CCAS = @CCAS@
 CCASDEPMODE = @CCASDEPMODE@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = -DSHARELIB -g \
-	-I$(top_srcdir)/src/share-lib \
-	-I$(top_srcdir)/src/share-lib/mem \
-	-I$(top_srcdir)/src/share-lib/net \
-	-I$(top_srcdir)/src/share-lib/fs \
-	-I$(top_srcdir)/src/sexe \
-	-I$(top_builddir)/src/gnu \
-	-I$(top_srcdir)/src/gnu
-
+CFLAGS = @CFLAGS@
 CP = @CP@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -1220,6 +1223,15 @@ top_srcdir = @top_srcdir@
 version_info = @version_info@
 version_patch = @version_patch@
 AUTOMAKE_OPTIONS = foreign
+flags = -DSHARELIB -g \
+	-I$(top_srcdir)/src/share-lib \
+	-I$(top_srcdir)/src/share-lib/mem \
+	-I$(top_srcdir)/src/share-lib/net \
+	-I$(top_srcdir)/src/share-lib/fs \
+	-I$(top_srcdir)/src/sexe \
+	-I$(top_builddir)/src/gnu \
+	-I$(top_srcdir)/src/gnu
+
 common_INCLUDES = \
   $(top_srcdir)/src/share-lib/share.h \
   $(top_srcdir)/src/share-lib/shtime.h \
@@ -1235,24 +1247,23 @@ common_INCLUDES = \
 #	shfs_inode_remote_copy \
 #	shfs_inode_remote_link
 shkeystore_SOURCES = $(common_SOURCES) shkeystore.c
-shkeystore_LDADD = $(top_builddir)/src/share-lib/libshare.a
-#$(top_builddir)/src/gnu/libgnu.a -lrt
+shkeystore_LDADD = $(top_builddir)/src/share-lib/libshare.la
+shkeystore_CFLAGS = $(flags) 
 shpeer_SOURCES = $(common_SOURCES) shpeer.c
-shpeer_LDADD = $(top_builddir)/src/share-lib/libshare.a
-#	$(top_builddir)/src/gnu/libgnu.a -lrt
+shpeer_LDADD = $(top_builddir)/src/share-lib/libshare.la
+shpeer_CFLAGS = $(flags) 
 shproc_lock_SOURCES = $(common_SOURCES) shproc_lock.c
-shproc_lock_LDADD = $(top_builddir)/src/share-lib/libshare.a
-#	$(top_builddir)/src/gnu/libgnu.a -lrt
+shproc_lock_LDADD = $(top_builddir)/src/share-lib/libshare.la
+shproc_lock_CFLAGS = $(flags) 
 card_login_SOURCES = $(common_SOURCES) card_login.c
-card_login_LDADD = $(top_builddir)/src/share-lib/libshare.a
-#	$(top_builddir)/src/gnu/libgnu.a -lrt
-card_login_CFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/share-daemon/bits
+card_login_LDADD = $(top_builddir)/src/share-lib/libshare.la
+card_login_CFLAGS = $(flags) -I$(top_srcdir)/include -I$(top_srcdir)/src/share-daemon/bits
 esl_client_SOURCES = esl/esl_client.c
-esl_client_LDADD = $(top_builddir)/src/share-lib/libshare.a
-esl_client_CFLAGS = -I$(top_srcdir)/include 
+esl_client_LDADD = $(top_builddir)/src/share-lib/libshare.la
+esl_client_CFLAGS = $(flags) -I$(top_srcdir)/include 
 esl_server_SOURCES = esl/esl_server.c
-esl_server_LDADD = $(top_builddir)/src/share-lib/libshare.a
-esl_server_CFLAGS = -I$(top_srcdir)/include 
+esl_server_LDADD = $(top_builddir)/src/share-lib/libshare.la
+esl_server_CFLAGS = $(flags) -I$(top_srcdir)/include 
 all: all-am
 
 .SUFFIXES:
@@ -1312,15 +1323,15 @@ esl_server$(EXEEXT): $(esl_server_OBJECTS) $(esl_server_DEPENDENCIES) $(EXTRA_es
 
 shkeystore$(EXEEXT): $(shkeystore_OBJECTS) $(shkeystore_DEPENDENCIES) $(EXTRA_shkeystore_DEPENDENCIES) 
 	@rm -f shkeystore$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(shkeystore_OBJECTS) $(shkeystore_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(shkeystore_LINK) $(shkeystore_OBJECTS) $(shkeystore_LDADD) $(LIBS)
 
 shpeer$(EXEEXT): $(shpeer_OBJECTS) $(shpeer_DEPENDENCIES) $(EXTRA_shpeer_DEPENDENCIES) 
 	@rm -f shpeer$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(shpeer_OBJECTS) $(shpeer_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(shpeer_LINK) $(shpeer_OBJECTS) $(shpeer_LDADD) $(LIBS)
 
 shproc_lock$(EXEEXT): $(shproc_lock_OBJECTS) $(shproc_lock_DEPENDENCIES) $(EXTRA_shproc_lock_DEPENDENCIES) 
 	@rm -f shproc_lock$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(shproc_lock_OBJECTS) $(shproc_lock_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(shproc_lock_LINK) $(shproc_lock_OBJECTS) $(shproc_lock_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -1331,9 +1342,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/card_login-card_login.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/esl_client-esl_client.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/esl_server-esl_server.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shkeystore.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shpeer.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shproc_lock.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shkeystore-shkeystore.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shpeer-shpeer.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shproc_lock-shproc_lock.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -1403,6 +1414,48 @@ esl_server-esl_server.obj: esl/esl_server.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='esl/esl_server.c' object='esl_server-esl_server.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(esl_server_CFLAGS) $(CFLAGS) -c -o esl_server-esl_server.obj `if test -f 'esl/esl_server.c'; then $(CYGPATH_W) 'esl/esl_server.c'; else $(CYGPATH_W) '$(srcdir)/esl/esl_server.c'; fi`
+
+shkeystore-shkeystore.o: shkeystore.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shkeystore_CFLAGS) $(CFLAGS) -MT shkeystore-shkeystore.o -MD -MP -MF $(DEPDIR)/shkeystore-shkeystore.Tpo -c -o shkeystore-shkeystore.o `test -f 'shkeystore.c' || echo '$(srcdir)/'`shkeystore.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/shkeystore-shkeystore.Tpo $(DEPDIR)/shkeystore-shkeystore.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shkeystore.c' object='shkeystore-shkeystore.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shkeystore_CFLAGS) $(CFLAGS) -c -o shkeystore-shkeystore.o `test -f 'shkeystore.c' || echo '$(srcdir)/'`shkeystore.c
+
+shkeystore-shkeystore.obj: shkeystore.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shkeystore_CFLAGS) $(CFLAGS) -MT shkeystore-shkeystore.obj -MD -MP -MF $(DEPDIR)/shkeystore-shkeystore.Tpo -c -o shkeystore-shkeystore.obj `if test -f 'shkeystore.c'; then $(CYGPATH_W) 'shkeystore.c'; else $(CYGPATH_W) '$(srcdir)/shkeystore.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/shkeystore-shkeystore.Tpo $(DEPDIR)/shkeystore-shkeystore.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shkeystore.c' object='shkeystore-shkeystore.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shkeystore_CFLAGS) $(CFLAGS) -c -o shkeystore-shkeystore.obj `if test -f 'shkeystore.c'; then $(CYGPATH_W) 'shkeystore.c'; else $(CYGPATH_W) '$(srcdir)/shkeystore.c'; fi`
+
+shpeer-shpeer.o: shpeer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shpeer_CFLAGS) $(CFLAGS) -MT shpeer-shpeer.o -MD -MP -MF $(DEPDIR)/shpeer-shpeer.Tpo -c -o shpeer-shpeer.o `test -f 'shpeer.c' || echo '$(srcdir)/'`shpeer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/shpeer-shpeer.Tpo $(DEPDIR)/shpeer-shpeer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shpeer.c' object='shpeer-shpeer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shpeer_CFLAGS) $(CFLAGS) -c -o shpeer-shpeer.o `test -f 'shpeer.c' || echo '$(srcdir)/'`shpeer.c
+
+shpeer-shpeer.obj: shpeer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shpeer_CFLAGS) $(CFLAGS) -MT shpeer-shpeer.obj -MD -MP -MF $(DEPDIR)/shpeer-shpeer.Tpo -c -o shpeer-shpeer.obj `if test -f 'shpeer.c'; then $(CYGPATH_W) 'shpeer.c'; else $(CYGPATH_W) '$(srcdir)/shpeer.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/shpeer-shpeer.Tpo $(DEPDIR)/shpeer-shpeer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shpeer.c' object='shpeer-shpeer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shpeer_CFLAGS) $(CFLAGS) -c -o shpeer-shpeer.obj `if test -f 'shpeer.c'; then $(CYGPATH_W) 'shpeer.c'; else $(CYGPATH_W) '$(srcdir)/shpeer.c'; fi`
+
+shproc_lock-shproc_lock.o: shproc_lock.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shproc_lock_CFLAGS) $(CFLAGS) -MT shproc_lock-shproc_lock.o -MD -MP -MF $(DEPDIR)/shproc_lock-shproc_lock.Tpo -c -o shproc_lock-shproc_lock.o `test -f 'shproc_lock.c' || echo '$(srcdir)/'`shproc_lock.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/shproc_lock-shproc_lock.Tpo $(DEPDIR)/shproc_lock-shproc_lock.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shproc_lock.c' object='shproc_lock-shproc_lock.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shproc_lock_CFLAGS) $(CFLAGS) -c -o shproc_lock-shproc_lock.o `test -f 'shproc_lock.c' || echo '$(srcdir)/'`shproc_lock.c
+
+shproc_lock-shproc_lock.obj: shproc_lock.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shproc_lock_CFLAGS) $(CFLAGS) -MT shproc_lock-shproc_lock.obj -MD -MP -MF $(DEPDIR)/shproc_lock-shproc_lock.Tpo -c -o shproc_lock-shproc_lock.obj `if test -f 'shproc_lock.c'; then $(CYGPATH_W) 'shproc_lock.c'; else $(CYGPATH_W) '$(srcdir)/shproc_lock.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/shproc_lock-shproc_lock.Tpo $(DEPDIR)/shproc_lock-shproc_lock.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shproc_lock.c' object='shproc_lock-shproc_lock.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(shproc_lock_CFLAGS) $(CFLAGS) -c -o shproc_lock-shproc_lock.obj `if test -f 'shproc_lock.c'; then $(CYGPATH_W) 'shproc_lock.c'; else $(CYGPATH_W) '$(srcdir)/shproc_lock.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1538,9 +1591,9 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/card_login-card_login.Po
 	-rm -f ./$(DEPDIR)/esl_client-esl_client.Po
 	-rm -f ./$(DEPDIR)/esl_server-esl_server.Po
-	-rm -f ./$(DEPDIR)/shkeystore.Po
-	-rm -f ./$(DEPDIR)/shpeer.Po
-	-rm -f ./$(DEPDIR)/shproc_lock.Po
+	-rm -f ./$(DEPDIR)/shkeystore-shkeystore.Po
+	-rm -f ./$(DEPDIR)/shpeer-shpeer.Po
+	-rm -f ./$(DEPDIR)/shproc_lock-shproc_lock.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1589,9 +1642,9 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/card_login-card_login.Po
 	-rm -f ./$(DEPDIR)/esl_client-esl_client.Po
 	-rm -f ./$(DEPDIR)/esl_server-esl_server.Po
-	-rm -f ./$(DEPDIR)/shkeystore.Po
-	-rm -f ./$(DEPDIR)/shpeer.Po
-	-rm -f ./$(DEPDIR)/shproc_lock.Po
+	-rm -f ./$(DEPDIR)/shkeystore-shkeystore.Po
+	-rm -f ./$(DEPDIR)/shpeer-shpeer.Po
+	-rm -f ./$(DEPDIR)/shproc_lock-shproc_lock.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

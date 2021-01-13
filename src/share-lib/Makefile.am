@@ -1,27 +1,25 @@
 AUTOMAKE_OPTIONS = foreign
-CFLAGS = 
-LDFLAGS = $(LIBSOCKET) $(LIB_SELECT) -version-info @version_info@
 
-#LDFLAGS = $(LIBSOCKET) $(LIB_SELECT) $(LTLIBINTL) $(LTLIBTHREAD) $(LIB_PTHREAD) -version-info @version_info@
+ld_flags = $(LIBSOCKET) $(LIB_SELECT) -version-info @version_info@
 
 noinst_PROGRAMS = test_libshare test_libshare_static test_xd3
 
 #test_libshare
 test_libshare_SOURCES = $(common_INCLUDES) test_libshare.c
 test_libshare_LDADD = libshare.la
+test_libshare_LDFLAGS = $(ld_flags)
 
 # test_libshare_static
 test_libshare_static_SOURCES = $(common_INCLUDES) test_libshare.c
 test_libshare_static_LDFLAGS = -static
-#test_libshare_static_LDADD = libshare.a $(top_builddir)/src/gnu/libgnu.a -lrt
 test_libshare_static_LDADD = libshare.a
+test_libshare_LDFLAGS = $(ld_flags)
 
 test_xd3_SOURCES = $(srcdir)/mem/delta/shxd_test.c $(xd3_headers)
 test_xd3_CFLAGS = -DREGRESSION_TEST -DSHELL_TESTS=0
-
+test_xd3_LDFLAGS = $(ld_flags)
 
 TESTS = test_libshare_static
-# test_libshare test_xd3
 
 if LINUX
 install-exec-hook:
@@ -526,23 +524,17 @@ xd3_headers = \
 
 
 lib_LIBRARIES = libshare.a
-#libshare_a_LIBADD = $(top_builddir)/src/gnu/libgnu.a
 libshare_a_SOURCES = $(common_INCLUDES) $(common_sources) $(zlib_sources) \
 	$(ecdsa_sources) $(gnu_sources) \
 	$(top_srcdir)/src/share-lib/test/shtest.c
-
-
 libshare_a_CFLAGS = $(AM_CFLAGS) \
-	-fPIC \
 	-DHAVE_CONFIG_H -DSHARELIB=1 \
 	-I$(srcdir)/net -I$(srcdir)/fs -I$(srcdir)/mem \
 	-I$(srcdir)/mem/zlib \
 	-I$(top_srcdir)/src/gnu -I$(top_builddir)/src/gnu
-
-#libshare_a_LDFLAGS =  $(LIB_ACL) $(LIB_CLOCK_GETTIME) $(LIBSOCKET)
+libshare_a_LDFLAGS = $(ld_flags)
 
 lib_LTLIBRARIES = libshare.la
-#libshare_la_LIBADD = $(top_builddir)/src/gnu/libgnu.la
 libshare_la_SOURCES = $(common_INCLUDES) $(common_sources) \
 	$(zlib_sources) $(ecdsa_sources) $(gnu_sources) \
 	$(top_srcdir)/src/share-lib/test/shtest.c
@@ -550,18 +542,12 @@ if LIBSHARE_JAVA
 libshare_la_SOURCES += \
 	$(srcdir)/java/libshare_java_wrap.c 
 endif
-
-
 libshare_la_CFLAGS = $(AM_CFLAGS) \
 	-DHAVE_CONFIG_H -DSHARELIB=1 \
 	-I$(srcdir)/net -I$(srcdir)/fs -I$(srcdir)/mem \
 	-I$(srcdir)/mem/zlib \
 	-I$(top_srcdir)/src/gnu -I$(top_builddir)/src/gnu
-#libshare_la_LDFLAGS =  $(LIB_ACL) $(LIB_CLOCK_GETTIME) $(LIBSOCKET)
-
-#share_a_LDFLAGS = $(LIBSOCKET) $(LIB_SELECT) $(LTLIBINTL) $(LTLIBTHREAD)
-#libshare_a_LDFLAGS = $(LIBSOCKET) $(LIB_SELECT) $(LTLIBINTL) $(LTLIBTHREAD)
-#share_LDFLAGS = $(LIBSOCKET) $(LIB_SELECT) $(LTLIBINTL) $(LTLIBTHREAD)
+libshare_la_LDFLAGS = $(ld_flags)
 
 if DEBUG
 AM_CFLAGS = -g3 -O0 -DDEBUG -Wno-discarded-qualifiers
@@ -583,10 +569,5 @@ $(top_srcdir)/src/share-lib/test/shtest.c: $(common_sources)
 	@echo "Generating 'test/shtest.c' for test suite."
 	$(top_srcdir)/scripts/make-tests.sh $(top_srcdir)/src/share-lib/*.c $(top_srcdir)/src/share-lib/sys/*.c $(top_srcdir)/src/share-lib/mem/*.c $(top_srcdir)/src/share-lib/fs/*.c $(top_srcdir)/src/share-lib/fs/meta/*.c $(top_srcdir)/src/share-lib/net/*.c $(top_srcdir)/src/share-lib/sys/*.c $(top_srcdir)/src/share-lib/sys/pkg/*.c > $(top_srcdir)/src/share-lib/test/shtest.c
 
-#$(top_builddir)/src/gnu/libgnu.a: $(top_builddir)/src/gnu/.libs/libgnu.a
-#	$(LN_S) $(top_builddir)/src/gnu/.libs/libgnu.a $(top_builddir)/src/gnu/
-
 clean-local:
 	rm -f $(top_srcdir)/src/share-lib/test/shtest.c
-
-

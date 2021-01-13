@@ -8,7 +8,7 @@
 
 #include "sexe.h"
 #include "lauxlib.h"
-#include "lobject.h"
+#include "ltable.h"
 #include "lstate.h"
 #include "lundump.h"
 

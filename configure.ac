@@ -228,6 +228,7 @@ AC_ISC_POSIX
 AC_C_INLINE
 
 CFLAGS="$CFLAGS -I/lib/jvm/java-*/include"
+AC_SUBST(CFLAGS)
 CPPFLAGS="$CPPFLAGS -I/usr/include/php/Zend -I/usr/include/php/TSRM -I/usr/include/php/main -I/usr/include/php"
 AC_SUBST(CPPFLAGS)
 

@@ -22322,6 +22322,7 @@ esac
 
 
 CFLAGS="$CFLAGS -I/lib/jvm/java-*/include"
+
 CPPFLAGS="$CPPFLAGS -I/usr/include/php/Zend -I/usr/include/php/TSRM -I/usr/include/php/main -I/usr/include/php"
 
 

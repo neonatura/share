@@ -1034,10 +1034,13 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 libshare_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libshare_la_CFLAGS) \
-	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+	$(CFLAGS) $(libshare_la_LDFLAGS) $(LDFLAGS) -o $@
 am_test_libshare_OBJECTS = $(am__objects_2) test_libshare.$(OBJEXT)
 test_libshare_OBJECTS = $(am_test_libshare_OBJECTS)
 test_libshare_DEPENDENCIES = libshare.la
+test_libshare_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(test_libshare_LDFLAGS) $(LDFLAGS) -o $@
 am_test_libshare_static_OBJECTS = $(am__objects_2) \
 	test_libshare.$(OBJEXT)
 test_libshare_static_OBJECTS = $(am_test_libshare_static_OBJECTS)
@@ -1051,7 +1054,7 @@ test_xd3_OBJECTS = $(am_test_xd3_OBJECTS)
 test_xd3_LDADD = $(LDADD)
 test_xd3_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test_xd3_CFLAGS) \
-	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+	$(CFLAGS) $(test_xd3_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -1839,7 +1842,7 @@ CCAS = @CCAS@
 CCASDEPMODE = @CCASDEPMODE@
 CCASFLAGS = @CCASFLAGS@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = 
+CFLAGS = @CFLAGS@
 CP = @CP@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -2385,7 +2388,7 @@ JAR = @JAR@
 JAVA = @JAVA@
 JAVAC = @JAVAC@
 LD = @LD@
-LDFLAGS = $(LIBSOCKET) $(LIB_SELECT) -version-info @version_info@
+LDFLAGS = @LDFLAGS@
 LIBINTL = @LIBINTL@
 LIBMULTITHREAD = @LIBMULTITHREAD@
 LIBOBJS = @LIBOBJS@
@@ -2725,18 +2728,20 @@ top_srcdir = @top_srcdir@
 version_info = @version_info@
 version_patch = @version_patch@
 AUTOMAKE_OPTIONS = foreign
+ld_flags = $(LIBSOCKET) $(LIB_SELECT) -version-info @version_info@
 
 #test_libshare
 test_libshare_SOURCES = $(common_INCLUDES) test_libshare.c
 test_libshare_LDADD = libshare.la
+test_libshare_LDFLAGS = $(ld_flags)
 
 # test_libshare_static
 test_libshare_static_SOURCES = $(common_INCLUDES) test_libshare.c
 test_libshare_static_LDFLAGS = -static
-#test_libshare_static_LDADD = libshare.a $(top_builddir)/src/gnu/libgnu.a -lrt
 test_libshare_static_LDADD = libshare.a
 test_xd3_SOURCES = $(srcdir)/mem/delta/shxd_test.c $(xd3_headers)
 test_xd3_CFLAGS = -DREGRESSION_TEST -DSHELL_TESTS=0
+test_xd3_LDFLAGS = $(ld_flags)
 noinst_INCLUDES = \
 	share.h sherr.h shtime.h shcrc.h shpeer.h shpref.h \
 	shnet.h shfs.h shmem.h shsys.h
@@ -3198,22 +3203,18 @@ xd3_headers = \
 	$(srcdir)/mem/delta/xdelta3-test.h
 
 lib_LIBRARIES = libshare.a
-#libshare_a_LIBADD = $(top_builddir)/src/gnu/libgnu.a
 libshare_a_SOURCES = $(common_INCLUDES) $(common_sources) $(zlib_sources) \
 	$(ecdsa_sources) $(gnu_sources) \
 	$(top_srcdir)/src/share-lib/test/shtest.c
 
 libshare_a_CFLAGS = $(AM_CFLAGS) \
-	-fPIC \
 	-DHAVE_CONFIG_H -DSHARELIB=1 \
 	-I$(srcdir)/net -I$(srcdir)/fs -I$(srcdir)/mem \
 	-I$(srcdir)/mem/zlib \
 	-I$(top_srcdir)/src/gnu -I$(top_builddir)/src/gnu
 
-
-#libshare_a_LDFLAGS =  $(LIB_ACL) $(LIB_CLOCK_GETTIME) $(LIBSOCKET)
+libshare_a_LDFLAGS = $(ld_flags)
 lib_LTLIBRARIES = libshare.la
-#libshare_la_LIBADD = $(top_builddir)/src/gnu/libgnu.la
 libshare_la_SOURCES = $(common_INCLUDES) $(common_sources) \
 	$(zlib_sources) $(ecdsa_sources) $(gnu_sources) \
 	$(top_srcdir)/src/share-lib/test/shtest.c $(am__append_2)
@@ -3223,14 +3224,10 @@ libshare_la_CFLAGS = $(AM_CFLAGS) \
 	-I$(srcdir)/mem/zlib \
 	-I$(top_srcdir)/src/gnu -I$(top_builddir)/src/gnu
 
+libshare_la_LDFLAGS = $(ld_flags)
 @DEBUG_FALSE@AM_CFLAGS = \
 @DEBUG_FALSE@  -fomit-frame-pointer -fstrength-reduce -fthread-jumps -funroll-loops
 
-#libshare_la_LDFLAGS =  $(LIB_ACL) $(LIB_CLOCK_GETTIME) $(LIBSOCKET)
-
-#share_a_LDFLAGS = $(LIBSOCKET) $(LIB_SELECT) $(LTLIBINTL) $(LTLIBTHREAD)
-#libshare_a_LDFLAGS = $(LIBSOCKET) $(LIB_SELECT) $(LTLIBINTL) $(LTLIBTHREAD)
-#share_LDFLAGS = $(LIBSOCKET) $(LIB_SELECT) $(LTLIBINTL) $(LTLIBTHREAD)
 @DEBUG_TRUE@AM_CFLAGS = -g3 -O0 -DDEBUG -Wno-discarded-qualifiers \
 @DEBUG_TRUE@	$(am__append_3)
 @DEBUG_FALSE@AM_CXXFLAGS = \
@@ -3369,7 +3366,7 @@ libshare.la: $(libshare_la_OBJECTS) $(libshare_la_DEPENDENCIES) $(EXTRA_libshare
 
 test_libshare$(EXEEXT): $(test_libshare_OBJECTS) $(test_libshare_DEPENDENCIES) $(EXTRA_test_libshare_DEPENDENCIES) 
 	@rm -f test_libshare$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(test_libshare_OBJECTS) $(test_libshare_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(test_libshare_LINK) $(test_libshare_OBJECTS) $(test_libshare_LDADD) $(LIBS)
 
 test_libshare_static$(EXEEXT): $(test_libshare_static_OBJECTS) $(test_libshare_static_DEPENDENCIES) $(EXTRA_test_libshare_static_DEPENDENCIES) 
 	@rm -f test_libshare_static$(EXEEXT)
@@ -10853,7 +10850,6 @@ uninstall-am: uninstall-libLIBRARIES uninstall-libLTLIBRARIES
 
 .PRECIOUS: Makefile
 
-# test_libshare test_xd3
 
 @LINUX_TRUE@install-exec-hook:
 @LINUX_TRUE@	mkdir -p /var/lib/share
@@ -10863,9 +10859,6 @@ $(top_srcdir)/src/share-lib/test/shtest.c: $(common_sources)
 	@mkdir -p $(top_srcdir)/src/share-lib/test/
 	@echo "Generating 'test/shtest.c' for test suite."
 	$(top_srcdir)/scripts/make-tests.sh $(top_srcdir)/src/share-lib/*.c $(top_srcdir)/src/share-lib/sys/*.c $(top_srcdir)/src/share-lib/mem/*.c $(top_srcdir)/src/share-lib/fs/*.c $(top_srcdir)/src/share-lib/fs/meta/*.c $(top_srcdir)/src/share-lib/net/*.c $(top_srcdir)/src/share-lib/sys/*.c $(top_srcdir)/src/share-lib/sys/pkg/*.c > $(top_srcdir)/src/share-lib/test/shtest.c
-
-#$(top_builddir)/src/gnu/libgnu.a: $(top_builddir)/src/gnu/.libs/libgnu.a
-#	$(LN_S) $(top_builddir)/src/gnu/.libs/libgnu.a $(top_builddir)/src/gnu/
 
 clean-local:
 	rm -f $(top_srcdir)/src/share-lib/test/shtest.c

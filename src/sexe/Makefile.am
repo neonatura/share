@@ -1,5 +1,6 @@
-AM_LDFLAGS = -version-info @version_info@
+AUTOMAKE_OPTIONS = foreign
 
+ld_flags = -lm -ldl -version-info @version_info@
 
 common_includes = \
 	lapi.h \
@@ -74,43 +75,48 @@ lib_LIBRARIES = libshare_sexe.a
 bin_PROGRAMS = sx sxc readsexe static_sx static_sxc
 include_HEADERS = sexe.h sexe_lua.h sexe_conf.h
 lib_LTLIBRARIES = libshare_sexe.la
-TESTS = test_sexe.sh
+#TESTS = test_sexe.sh
 
 sx_SOURCES = $(common_includes) $(common_sources) sexe_interp.c
 sx_LDADD = $(top_builddir)/src/share-lib/libshare.la
-sx_CFLAGS= -lm -Wall -DSEXELIB \
+sx_CFLAGS= -Wall -DSEXELIB \
 	-I$(top_srcdir)/src/share-lib
+sx_LDFLAGS = $(ld_flags)
 
 static_sx_SOURCES = $(common_includes) $(common_sources) sexe_interp.c
 static_sx_LDADD = $(top_builddir)/src/share-lib/libshare.a
-static_sx_CFLAGS= -lm -Wall -DSEXELIB \
+static_sx_CFLAGS= -Wall -DSEXELIB \
 	-I$(top_srcdir)/src/share-lib
+static_sx_LDFLAGS = $(ld_flags)
 
 sxc_SOURCES = $(common_includes) $(common_sources) sexe_compile.c
 sxc_LDADD = $(top_builddir)/src/share-lib/libshare.la
-sxc_CFLAGS= -lm -Wall -DSEXELIB \
+sxc_CFLAGS= -Wall -DSEXELIB \
 	-I$(top_srcdir)/src/share-lib
+sxc_LDFLAGS = $(ld_flags)
 
 static_sxc_SOURCES = $(common_includes) $(common_sources) sexe_compile.c
 static_sxc_LDADD = $(top_builddir)/src/share-lib/libshare.a
-static_sxc_CFLAGS= -lm -Wall -DSEXELIB \
+static_sxc_CFLAGS= -Wall -DSEXELIB \
 	-I$(top_srcdir)/src/share-lib
+static_sxc_LDFLAGS = $(ld_flags)
 
 readsexe_SOURCES = $(common_includes) $(common_sources) sexe_symbol.c
 readsexe_LDADD = $(top_builddir)/src/share-lib/libshare.la
-readsexe_CFLAGS= -lm -Wall -DSEXELIB \
+readsexe_CFLAGS = -Wall -DSEXELIB \
 	-I$(top_srcdir)/src/share-lib
+readsexe_LDFLAGS = $(ld_flags)
 
 libshare_sexe_a_SOURCES = $(common_includes) $(common_sources) sexe_api.c
 libshare_sexe_a_LIBADD = $(top_builddir)/src/share-lib/libshare.a
-libshare_sexe_a_CFLAGS = -fPIC -Wall -DSEXELIB \
-	-I$(top_srcdir)/src/share-lib
+libshare_sexe_a_CFLAGS = -Wall -DSEXELIB -I$(top_srcdir)/src/share-lib
+libshare_sexe_a_LDFLAGS = $(ld_flags)
 
 libshare_sexe_la_SOURCES = $(common_includes) $(common_sources) sexe_api.c
 libshare_sexe_la_LIBADD = $(top_builddir)/src/share-lib/libshare.la
 libshare_sexe_la_CFLAGS = -Wall -DSEXELIB \
 	-I$(top_srcdir)/src/share-lib
-
+libshare_sexe_la_LDFLAGS = $(ld_flags)
 
 if FREEBSD
 sx_CFLAGS += -DLUA_USE_POSIX -DLUA_USE_DLOPEN -Wl,-E
@@ -119,14 +125,10 @@ endif
 
 if LINUX
 sx_CFLAGS += -DLUA_USE_LINUX -Wl,-E
-sx_LDFLAGS = -Wl,-E -ldl
 sxc_CFLAGS += -DLUA_USE_LINUX -Wl,-E 
-sxc_LDFLAGS = -Wl,-E -ldl
 readsexe_CFLAGS += -DLUA_USE_LINUX
-readsexe_LDFLAGS = -Wl,-E -ldl
 libshare_sexe_a_CFLAGS += -DLUA_USE_LINUX
 libshare_sexe_la_CFLAGS += -DLUA_USE_LINUX
-libshare_sexe_la_LIBADD += -ldl
 endif
 
 if DEBUG
@@ -149,22 +151,10 @@ endif
 
 test_sexe.sh: test_sexe.sx
 
+$(builddir)/libshare.so.5:
+	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.5 $(builddir)/libshare.so.5
 
-#aix: $(MAKE) $(ALL) CC="xlc" CFLAGS="-O2 -DLUA_USE_POSIX -DLUA_USE_DLOPEN" SYSLIBS="-ldl" SYSLDFLAGS="-brtl -bexpall"
-#ansi: $(MAKE) $(ALL) SYSCFLAGS="-DLUA_ANSI"
-#bsd: $(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_POSIX -DLUA_USE_DLOPEN" SYSLIBS="-Wl,-E"
-#macosx: $(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_MACOSX" SYSLIBS="-lreadline"
-#mingw: $(MAKE) "LUA_A=lua52.dll" "LUA_T=lua.exe" \
-#	"AR=$(CC) -shared -o" "RANLIB=strip --strip-unneeded" \
-#	"SYSCFLAGS=-DLUA_BUILD_AS_DLL" "SYSLIBS=" "SYSLDFLAGS=-s" lua.exe
-#	$(MAKE) "LUAC_T=luac.exe" luac.exe
-#posix: $(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_POSIX"
-#solaris: $(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_POSIX -DLUA_USE_DLOPEN" SYSLIBS="-ldl"
-
-$(builddir)/libshare.so.3:
-	ln -sf $(top_builddir)/src/share-lib/.libs/libshare.so.3 $(builddir)/libshare.so.3
-
-test_sexe.sx: sx $(builddir)/libshare.so.3
+test_sexe.sx: sx $(builddir)/libshare.so.5
 	./sxc -g -o test_sexe.sx test_sexe.lua
 
 lapi.o: lapi.c luaconf.h lapi.h llimits.h lstate.h lobject.h ltm.h \
@@ -215,4 +205,3 @@ lvm.o: lvm.c luaconf.h ldebug.h lstate.h lobject.h llimits.h ltm.h \
  lzio.h lmem.h ldo.h lfunc.h lgc.h lopcodes.h lstring.h ltable.h lvm.h
 lzio.o: lzio.c luaconf.h llimits.h lmem.h lstate.h lobject.h ltm.h \
  lzio.h
-
