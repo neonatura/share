@@ -330,7 +330,6 @@ gnu_sources = \
 	$(top_srcdir)/src/gnu/strftime.c \
 	$(top_srcdir)/src/gnu/stripslash.c \
 	$(top_srcdir)/src/gnu/strncasecmp.c \
-	$(top_srcdir)/src/gnu/strndup.c \
 	$(top_srcdir)/src/gnu/strnlen.c \
 	$(top_srcdir)/src/gnu/strnlen1.c \
 	$(top_srcdir)/src/gnu/strtol.c \
@@ -358,8 +357,8 @@ gnu_sources = \
 	$(top_srcdir)/src/gnu/xalloc-die.c \
 	$(top_srcdir)/src/gnu/xmalloc.c \
 	$(top_srcdir)/src/gnu/xsize.c \
-	$(top_srcdir)/src/gnu/xstrndup.c \
 	$(top_srcdir)/src/gnu/xstrtol.c \
+	$(top_srcdir)/src/gnu/xstrndup.c \
 	$(top_srcdir)/src/gnu/xstrtol-error.c \
 	$(top_srcdir)/src/gnu/xstrtoul.c \
 	$(top_srcdir)/src/gnu/xstrtoumax.c \
