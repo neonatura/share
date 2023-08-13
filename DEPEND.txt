@@ -2,3 +2,5 @@ You must install the 'gcc-java' package in order to provide the "jni.h" gcc head
 
 SWIG is optional. Pre-built source code has been generated as part of the distritution. To install on linux run 'yum install swig' or 'apt-get install swig'.
 
+The "help2man", "html2text", and "doxygen" packages are required to be installed for complete documentation.
+
